@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from datetime import datetime
+
 from consumer.domain.composed.input_queue import InputQueue
 from consumer.domain.composed.metrics import Metrics
 from consumer.domain.composed.save_manager import SaveManager
@@ -16,6 +18,7 @@ from consumer.domain.services.session_validator import SessionValidator
 from consumer.domain.value_objects import (
     GameInput,
     PlayerId,
+    SaveMetadata,
     SessionConfiguration,
     SessionId,
 )
@@ -138,3 +141,12 @@ class GameSession:
 
     def resolve_vote(self) -> None:
         self._current_vote = None
+        self._metrics.increment_votes_processed()
+
+    def record_tick(self) -> None:
+        self._metrics.increment_frames_executed()
+
+    def record_save(self, timestamp: datetime) -> SaveMetadata:
+        self._save_manager.update_metadata(timestamp)
+        assert self._save_manager.metadata is not None
+        return self._save_manager.metadata

@@ -33,10 +33,9 @@ class AutosaveUseCase:
         session.create_snapshot()
         data = await self._snapshot_port.create_snapshot()
         await self._save_repository.save(data)
-        session.save_manager.update_metadata(datetime.now(tz=timezone.utc))
+        metadata = session.record_save(datetime.now(tz=timezone.utc))
         session.restore_snapshot()
-        assert session.save_manager.metadata is not None
-        return SaveMapper.to_autosave_response(session.save_manager.metadata)
+        return SaveMapper.to_autosave_response(metadata)
 
 
 class ManualSaveUseCase:
@@ -58,7 +57,6 @@ class ManualSaveUseCase:
         session.create_snapshot()
         data = await self._snapshot_port.create_snapshot()
         await self._save_repository.save(data)
-        session.save_manager.update_metadata(datetime.now(tz=timezone.utc))
+        metadata = session.record_save(datetime.now(tz=timezone.utc))
         session.restore_snapshot()
-        assert session.save_manager.metadata is not None
-        return SaveMapper.to_manual_save_response(session.save_manager.metadata)
+        return SaveMapper.to_manual_save_response(metadata)

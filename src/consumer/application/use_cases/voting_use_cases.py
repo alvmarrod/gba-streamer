@@ -23,5 +23,4 @@ class ResolveVoteUseCase:
             return ResolveVoteResponse()
         result = VoteResolver.resolve(vote_round)
         session.resolve_vote()
-        session.metrics.increment_votes_processed()
         return VotingMapper.to_resolve_vote_response(result)

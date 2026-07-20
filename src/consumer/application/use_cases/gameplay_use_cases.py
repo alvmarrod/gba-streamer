@@ -73,7 +73,7 @@ class TickEmulatorUseCase:
         request: TickEmulatorRequest,  # noqa: ARG002
     ) -> TickEmulatorResponse:
         session = await self._session_provider.get_session()
-        session.metrics.increment_frames_executed()
+        session.record_tick()
         await self._emulator_control.tick()
         await self._video_publisher.publish()
         return TickEmulatorResponse()
