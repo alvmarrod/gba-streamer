@@ -7,6 +7,11 @@ from pathlib import Path
 
 from pyboy import PyBoy  # type: ignore[import-untyped]
 
+from consumer.application.ports.emulator_control_port import EmulatorControlPort
+from consumer.application.ports.framebuffer_provider_port import (
+    FramebufferProviderPort,
+)
+from consumer.application.ports.snapshot_port import SnapshotPort
 from consumer.domain.enums import Button
 from consumer.domain.value_objects import GameInput
 
@@ -22,7 +27,7 @@ _BUTTON_MAP: dict[Button, str] = {
 }
 
 
-class PyBoyAdapter:
+class PyBoyAdapter(EmulatorControlPort, SnapshotPort, FramebufferProviderPort):
     def __init__(self, rom_path: str | Path) -> None:
         self._pyboy = PyBoy(str(rom_path), window="null")
         self._pending_inputs: list[str] = []

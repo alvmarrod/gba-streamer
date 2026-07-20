@@ -7,6 +7,9 @@ from consumer.infrastructure.monitoring.metrics_publisher import MetricsPublishe
 from consumer.infrastructure.persistence.file_save_repository import (
     FileSaveRepository,
 )
+from consumer.infrastructure.persistence.singleton_game_session_provider import (
+    SingletonGameSessionProvider,
+)
 from consumer.infrastructure.streaming.aiortc_video_publisher import (
     AiortcVideoPublisher,
 )
@@ -18,4 +21,5 @@ __all__ = [
     "LoggerAdapter",
     "MetricsPublisher",
     "PyBoyAdapter",
+    "SingletonGameSessionProvider",
 ]
