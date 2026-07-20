@@ -1,0 +1,2 @@
+class InvalidSessionStateException(Exception):
+    pass
