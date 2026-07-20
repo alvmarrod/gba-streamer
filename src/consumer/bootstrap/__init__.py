@@ -55,6 +55,9 @@ from consumer.application.use_cases.voting_use_cases import ResolveVoteUseCase
 from consumer.domain.entities.game_session import GameSession
 from consumer.domain.enums import ControlMode
 from consumer.domain.value_objects import SessionConfiguration, SessionId
+from consumer.infrastructure.authorization.env_admin_authorizer import (
+    EnvAdminAuthorizer,
+)
 from consumer.infrastructure.configuration.file_configuration_provider import (
     FileConfigurationProvider,
 )
@@ -138,6 +141,7 @@ def create_app(
     metrics_publisher = MetricsPublisher(logger)
 
     telegram_adapter = RabbitMQTelegramAdapter()
+    authorizer = EnvAdminAuthorizer()
     telegram_command_uc = HandleTelegramCommandUseCase(
         start_session_uc,
         stop_session_uc,
@@ -146,6 +150,7 @@ def create_app(
         change_control_mode_uc,
         get_status_uc,
         telegram_adapter,
+        authorizer,
     )
 
     use_cases: dict[str, object] = {

@@ -1,3 +1,4 @@
+from consumer.application.ports.authorization_port import AuthorizationPort
 from consumer.application.ports.configuration_provider_port import (
     ConfigurationProviderPort,
 )
@@ -14,6 +15,7 @@ from consumer.application.ports.telegram_message_port import TelegramMessagePort
 from consumer.application.ports.video_publisher_port import VideoPublisherPort
 
 __all__ = [
+    "AuthorizationPort",
     "ConfigurationProviderPort",
     "EmulatorControlPort",
     "FramebufferProviderPort",

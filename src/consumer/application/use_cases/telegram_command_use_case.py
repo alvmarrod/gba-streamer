@@ -3,6 +3,7 @@ from __future__ import annotations
 from typing import Awaitable, Callable
 
 from consumer.application.dto.telegram import TelegramEvent
+from consumer.application.ports.authorization_port import AuthorizationPort
 from consumer.application.ports.telegram_message_port import TelegramMessagePort
 from consumer.application.use_cases.administration_use_cases import (
     ChangeControlModeUseCase,
@@ -27,6 +28,7 @@ class HandleTelegramCommandUseCase:
         change_control_mode: ChangeControlModeUseCase,
         get_status: GetStatusUseCase,
         port: TelegramMessagePort,
+        auth: AuthorizationPort,
     ) -> None:
         self._start_session = start_session
         self._stop_session = stop_session
@@ -35,14 +37,14 @@ class HandleTelegramCommandUseCase:
         self._change_control_mode = change_control_mode
         self._get_status = get_status
         self._port = port
+        self._auth = auth
 
     async def execute(self, event: TelegramEvent) -> None:
         command = event.command
         if command is None:
             return
 
-        handler = _COMMAND_MAP.get(command)
-        if handler is None:
+        if command not in _COMMAND_MAP:
             await self._port.respond(
                 bot_id=event.bot_id,
                 chat_id=event.chat_id,
@@ -52,6 +54,17 @@ class HandleTelegramCommandUseCase:
             )
             return
 
+        if command != "status" and not self._auth.is_admin(event.from_user_id):
+            await self._port.respond(
+                bot_id=event.bot_id,
+                chat_id=event.chat_id,
+                response_type="text",
+                payload={"text": "Unauthorized."},
+                correlation_id=event.event_id,
+            )
+            return
+
+        handler = _COMMAND_MAP[command]
         await handler(self, event)
 
 

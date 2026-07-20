@@ -1,3 +1,6 @@
+from consumer.infrastructure.authorization.env_admin_authorizer import (
+    EnvAdminAuthorizer,
+)
 from consumer.infrastructure.configuration.file_configuration_provider import (
     FileConfigurationProvider,
 )
@@ -19,6 +22,7 @@ from consumer.infrastructure.telegram.rabbitmq_adapter import (
 
 __all__ = [
     "AiortcVideoPublisher",
+    "EnvAdminAuthorizer",
     "FileConfigurationProvider",
     "FileSaveRepository",
     "LoggerAdapter",
