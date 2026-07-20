@@ -36,6 +36,8 @@ class TestRegisterRoutes:
         assert "/api/config/reload" in route_paths
         assert "/api/health" in route_paths
         assert "/api/metrics" in route_paths
+        assert "/api/status" in route_paths
+        assert "/api/save" in route_paths
         assert "/api/webrtc/offer" in route_paths
 
     def test_use_cases_stored_in_app(self) -> None:

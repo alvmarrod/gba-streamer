@@ -5,9 +5,11 @@ from aiohttp import web  # type: ignore[import-untyped]
 from consumer.application.dto.monitoring import (
     CollectMetricsRequest,
     HealthCheckRequest,
+    StatusRequest,
 )
 from consumer.application.use_cases.monitoring_use_cases import (
     CollectMetricsUseCase,
+    GetStatusUseCase,
     HealthCheckUseCase,
 )
 from consumer.presentation.api.mappers import PresentationMapper
@@ -46,3 +48,20 @@ async def collect_metrics(request: web.Request) -> web.Response:
 def register_monitor_routes(app: web.Application) -> None:
     app.router.add_get("/api/health", health_check)
     app.router.add_get("/api/metrics", collect_metrics)
+    app.router.add_get("/api/status", get_status)
+
+
+async def get_status(request: web.Request) -> web.Response:
+    use_case: GetStatusUseCase = request.app["use_cases"]["get_status"]
+    response = await use_case.execute(StatusRequest())
+    return web.json_response(
+        {
+            "session_state": PresentationMapper.enum_name(response.session_state),
+            "control_mode": PresentationMapper.enum_name(response.control_mode),
+            "connected_players": response.connected_players,
+            "total_players_seen": response.total_players_seen,
+            "total_commands": response.total_commands,
+            "frames_executed": response.frames_executed,
+            "votes_processed": response.votes_processed,
+        }
+    )

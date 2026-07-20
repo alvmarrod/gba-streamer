@@ -1,12 +1,13 @@
 from __future__ import annotations
 
-from consumer.domain.enums import SessionState
+from consumer.domain.enums import ControlMode, SessionState
 from consumer.domain.services.metrics_calculator import MetricsSnapshot
 
 from consumer.application.dto.monitoring import (
     CollectMetricsResponse,
     HealthCheckResponse,
     MetricsCounters,
+    StatusResponse,
 )
 
 
@@ -36,4 +37,24 @@ class MonitoringMapper:
             session_state=session_state,
             connected_players=connected_players,
             is_healthy=is_healthy,
+        )
+
+    @staticmethod
+    def to_status_response(
+        session_state: SessionState,
+        control_mode: ControlMode,
+        connected_players: int,
+        total_players_seen: int,
+        total_commands: int,
+        frames_executed: int,
+        votes_processed: int,
+    ) -> StatusResponse:
+        return StatusResponse(
+            session_state=session_state,
+            control_mode=control_mode,
+            connected_players=connected_players,
+            total_players_seen=total_players_seen,
+            total_commands=total_commands,
+            frames_executed=frames_executed,
+            votes_processed=votes_processed,
         )

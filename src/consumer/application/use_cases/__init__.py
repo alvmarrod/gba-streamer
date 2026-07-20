@@ -9,6 +9,7 @@ from consumer.application.use_cases.gameplay_use_cases import (
 )
 from consumer.application.use_cases.monitoring_use_cases import (
     CollectMetricsUseCase,
+    GetStatusUseCase,
     HealthCheckUseCase,
 )
 from consumer.application.use_cases.player_use_cases import (
@@ -36,6 +37,7 @@ __all__ = [
     "CollectMetricsUseCase",
     "ConnectPlayerUseCase",
     "DisconnectPlayerUseCase",
+    "GetStatusUseCase",
     "HealthCheckUseCase",
     "ManualSaveUseCase",
     "PauseSessionUseCase",

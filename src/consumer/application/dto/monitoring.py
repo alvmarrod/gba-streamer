@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 
-from consumer.domain.enums import SessionState
+from consumer.domain.enums import ControlMode, SessionState
 
 
 @dataclass(frozen=True)
@@ -34,3 +34,19 @@ class HealthCheckResponse:
     session_state: SessionState
     connected_players: int
     is_healthy: bool
+
+
+@dataclass(frozen=True)
+class StatusRequest:
+    pass
+
+
+@dataclass(frozen=True)
+class StatusResponse:
+    session_state: SessionState
+    control_mode: ControlMode
+    connected_players: int
+    total_players_seen: int
+    total_commands: int
+    frames_executed: int
+    votes_processed: int

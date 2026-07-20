@@ -30,6 +30,7 @@ from consumer.application.use_cases.gameplay_use_cases import (
 )
 from consumer.application.use_cases.monitoring_use_cases import (
     CollectMetricsUseCase,
+    GetStatusUseCase,
     HealthCheckUseCase,
 )
 from consumer.application.use_cases.player_use_cases import (
@@ -142,6 +143,7 @@ def create_app(
         ),
         "collect_metrics": CollectMetricsUseCase(session_provider, metrics_publisher),
         "health_check": HealthCheckUseCase(session_provider),
+        "get_status": GetStatusUseCase(session_provider),
         "autosave": AutosaveUseCase(session_provider, pyboy, save_repository),
         "manual_save": ManualSaveUseCase(session_provider, pyboy, save_repository),
         "resolve_vote": ResolveVoteUseCase(session_provider),

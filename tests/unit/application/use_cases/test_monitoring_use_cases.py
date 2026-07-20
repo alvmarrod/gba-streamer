@@ -7,6 +7,7 @@ from uuid import uuid4
 from consumer.application.dto.monitoring import (
     CollectMetricsRequest,
     HealthCheckRequest,
+    StatusRequest,
 )
 from consumer.application.ports.game_session_provider import GameSessionProvider
 from consumer.application.ports.metrics_publisher_port import (
@@ -14,6 +15,7 @@ from consumer.application.ports.metrics_publisher_port import (
 )
 from consumer.application.use_cases.monitoring_use_cases import (
     CollectMetricsUseCase,
+    GetStatusUseCase,
     HealthCheckUseCase,
 )
 from consumer.domain.composed.vote_round import VoteRound
@@ -130,3 +132,56 @@ class TestHealthCheckUseCase:
         response = await use_case.execute(HealthCheckRequest())
 
         assert response.is_healthy is False
+
+
+class TestGetStatusUseCase:
+    async def test_returns_status_for_fresh_session(self) -> None:
+        session = _make_session(control_mode=ControlMode.FIFO)
+        provider = StubSessionProvider(session)
+        use_case = GetStatusUseCase(provider)
+
+        response = await use_case.execute(StatusRequest())
+
+        assert response.session_state == SessionState.STARTING
+        assert response.control_mode == ControlMode.FIFO
+        assert response.connected_players == 0
+        assert response.total_players_seen == 0
+        assert response.total_commands == 0
+        assert response.frames_executed == 0
+        assert response.votes_processed == 0
+
+    async def test_reflects_connected_players(self) -> None:
+        session = _make_session()
+        session.connect_player(
+            Player(player_id=PlayerId(value=uuid4()), display_name="Alice")
+        )
+        session.connect_player(
+            Player(player_id=PlayerId(value=uuid4()), display_name="Bob")
+        )
+        provider = StubSessionProvider(session)
+        use_case = GetStatusUseCase(provider)
+
+        response = await use_case.execute(StatusRequest())
+
+        assert response.connected_players == 2
+        assert response.total_players_seen == 2
+
+    async def test_reflects_accumulated_metrics(self) -> None:
+        session = _make_session(control_mode=ControlMode.VOTING)
+        session.start()
+        provider = StubSessionProvider(session)
+        session.metrics.increment_commands()
+        session.metrics.increment_commands()
+        session.metrics.increment_frames_executed()
+        session.metrics.increment_frames_executed()
+        session.metrics.increment_frames_executed()
+        session.metrics.increment_votes_processed()
+        use_case = GetStatusUseCase(provider)
+
+        response = await use_case.execute(StatusRequest())
+
+        assert response.total_commands == 2
+        assert response.frames_executed == 3
+        assert response.votes_processed == 1
+        assert response.control_mode == ControlMode.VOTING
+        assert response.session_state == SessionState.RUNNING
