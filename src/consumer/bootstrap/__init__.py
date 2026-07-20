@@ -48,6 +48,9 @@ from consumer.application.use_cases.session_use_cases import (
     StartSessionUseCase,
     StopSessionUseCase,
 )
+from consumer.application.use_cases.telegram_command_use_case import (
+    HandleTelegramCommandUseCase,
+)
 from consumer.application.use_cases.voting_use_cases import ResolveVoteUseCase
 from consumer.domain.entities.game_session import GameSession
 from consumer.domain.enums import ControlMode
@@ -66,6 +69,9 @@ from consumer.infrastructure.persistence.singleton_game_session_provider import 
 )
 from consumer.infrastructure.streaming.aiortc_video_publisher import (
     AiortcVideoPublisher,
+)
+from consumer.infrastructure.telegram.rabbitmq_adapter import (
+    RabbitMQTelegramAdapter,
 )
 from consumer.presentation.api import register_routes
 from consumer.presentation.middleware import setup_middleware
@@ -122,13 +128,31 @@ def create_app(
     session = GameSession(session_id=SessionId(uuid4()), configuration=session_config)
     session_provider: GameSessionProvider = SingletonGameSessionProvider(session)
 
+    start_session_uc = StartSessionUseCase(session_provider)
+    stop_session_uc = StopSessionUseCase(session_provider)
+    pause_session_uc = PauseSessionUseCase(session_provider)
+    resume_session_uc = ResumeSessionUseCase(session_provider)
+    change_control_mode_uc = ChangeControlModeUseCase(session_provider)
+    get_status_uc = GetStatusUseCase(session_provider)
+
     metrics_publisher = MetricsPublisher(logger)
 
+    telegram_adapter = RabbitMQTelegramAdapter()
+    telegram_command_uc = HandleTelegramCommandUseCase(
+        start_session_uc,
+        stop_session_uc,
+        pause_session_uc,
+        resume_session_uc,
+        change_control_mode_uc,
+        get_status_uc,
+        telegram_adapter,
+    )
+
     use_cases: dict[str, object] = {
-        "start_session": StartSessionUseCase(session_provider),
-        "stop_session": StopSessionUseCase(session_provider),
-        "pause_session": PauseSessionUseCase(session_provider),
-        "resume_session": ResumeSessionUseCase(session_provider),
+        "start_session": start_session_uc,
+        "stop_session": stop_session_uc,
+        "pause_session": pause_session_uc,
+        "resume_session": resume_session_uc,
         "restore_session": RestoreSessionUseCase(
             session_provider, pyboy, save_repository
         ),
@@ -137,13 +161,13 @@ def create_app(
         "submit_input": SubmitInputUseCase(session_provider),
         "resolve_input": ResolveInputUseCase(session_provider, pyboy),
         "tick_emulator": TickEmulatorUseCase(session_provider, pyboy, publisher),
-        "change_control_mode": ChangeControlModeUseCase(session_provider),
+        "change_control_mode": change_control_mode_uc,
         "reload_configuration": ReloadConfigurationUseCase(
             session_provider, config_provider
         ),
         "collect_metrics": CollectMetricsUseCase(session_provider, metrics_publisher),
         "health_check": HealthCheckUseCase(session_provider),
-        "get_status": GetStatusUseCase(session_provider),
+        "get_status": get_status_uc,
         "autosave": AutosaveUseCase(session_provider, pyboy, save_repository),
         "manual_save": ManualSaveUseCase(session_provider, pyboy, save_repository),
         "resolve_vote": ResolveVoteUseCase(session_provider),
@@ -178,13 +202,19 @@ def create_app(
     app["publisher"] = publisher
     app["scheduler"] = scheduler
     app["pyboy"] = pyboy
+    app["telegram_adapter"] = telegram_adapter
+    app["telegram_command"] = telegram_command_uc
 
     setup_middleware(app, logger)
     register_routes(app, use_cases, logger)
 
-    app.on_startup.append(_make_startup(logger, scheduler))
+    app.on_startup.append(
+        _make_startup(logger, scheduler, telegram_adapter, telegram_command_uc)
+    )
     app.on_shutdown.append(
-        _make_shutdown(logger, scheduler, publisher, save_repository, pyboy)
+        _make_shutdown(
+            logger, scheduler, publisher, save_repository, pyboy, telegram_adapter
+        )
     )
 
     return app
@@ -200,8 +230,16 @@ def _setup_logging() -> None:
 def _make_startup(
     logger: LoggerAdapter,
     scheduler: Scheduler,
+    telegram_adapter: RabbitMQTelegramAdapter,
+    telegram_command: HandleTelegramCommandUseCase,
 ) -> Callable[[web.Application], Awaitable[None]]:
     async def startup(app: web.Application) -> None:
+        await telegram_adapter.connect()
+        await telegram_adapter.subscribe(telegram_command.execute)
+        consumer_task = asyncio.create_task(telegram_adapter.start())
+        app["_consumer_task"] = consumer_task
+        await logger.info("telegram_connected")
+
         await logger.info("scheduler_starting")
         scheduler.start()
         await logger.info("application_started")
@@ -215,9 +253,21 @@ def _make_shutdown(
     publisher: AiortcVideoPublisher,
     save_repository: FileSaveRepository,
     pyboy: PyBoyAdapter,
+    telegram_adapter: RabbitMQTelegramAdapter,
 ) -> Callable[[web.Application], Awaitable[None]]:
     async def shutdown(app: web.Application) -> None:
         await logger.info("application_stopping")
+
+        consumer_task: asyncio.Task[None] | None = app.get("_consumer_task")  # type: ignore[assignment]
+        if consumer_task is not None:
+            consumer_task.cancel()
+            try:
+                await consumer_task
+            except asyncio.CancelledError:
+                pass
+        await telegram_adapter.close()
+        await logger.info("telegram_disconnected")
+
         await scheduler.stop()
         await publisher.close()
         await logger.info("final_snapshot")

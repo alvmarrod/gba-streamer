@@ -27,6 +27,9 @@ from consumer.application.use_cases.session_use_cases import (
     StartSessionUseCase,
     StopSessionUseCase,
 )
+from consumer.application.use_cases.telegram_command_use_case import (
+    HandleTelegramCommandUseCase,
+)
 from consumer.application.use_cases.voting_use_cases import (
     ResolveVoteUseCase,
 )
@@ -38,6 +41,7 @@ __all__ = [
     "ConnectPlayerUseCase",
     "DisconnectPlayerUseCase",
     "GetStatusUseCase",
+    "HandleTelegramCommandUseCase",
     "HealthCheckUseCase",
     "ManualSaveUseCase",
     "PauseSessionUseCase",

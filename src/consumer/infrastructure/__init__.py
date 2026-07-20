@@ -13,6 +13,9 @@ from consumer.infrastructure.persistence.singleton_game_session_provider import 
 from consumer.infrastructure.streaming.aiortc_video_publisher import (
     AiortcVideoPublisher,
 )
+from consumer.infrastructure.telegram.rabbitmq_adapter import (
+    RabbitMQTelegramAdapter,
+)
 
 __all__ = [
     "AiortcVideoPublisher",
@@ -21,5 +24,6 @@ __all__ = [
     "LoggerAdapter",
     "MetricsPublisher",
     "PyBoyAdapter",
+    "RabbitMQTelegramAdapter",
     "SingletonGameSessionProvider",
 ]

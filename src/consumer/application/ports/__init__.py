@@ -10,6 +10,7 @@ from consumer.application.ports.logger_port import LoggerPort
 from consumer.application.ports.metrics_publisher_port import MetricsPublisherPort
 from consumer.application.ports.save_repository_port import SaveRepositoryPort
 from consumer.application.ports.snapshot_port import SnapshotPort
+from consumer.application.ports.telegram_message_port import TelegramMessagePort
 from consumer.application.ports.video_publisher_port import VideoPublisherPort
 
 __all__ = [
@@ -21,5 +22,6 @@ __all__ = [
     "MetricsPublisherPort",
     "SaveRepositoryPort",
     "SnapshotPort",
+    "TelegramMessagePort",
     "VideoPublisherPort",
 ]
