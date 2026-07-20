@@ -1,0 +1,6 @@
+# GBA Streamer — Runtime Configuration
+# Copy to gba-streamer.yaml and adjust for your environment.
+
+control_mode: fifo          # fifo | voting
+voting_interval: 2          # seconds between vote resolution ticks
+autosave_interval: 15       # seconds between automatic saves

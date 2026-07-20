@@ -9,7 +9,7 @@ from consumer.bootstrap import create_app
 
 
 def main() -> None:
-    config_path = Path(os.environ.get("CONFIG_PATH", "config/bots.yaml"))
+    config_path = Path(os.environ.get("CONFIG_PATH", "config/gba-streamer.yaml"))
     rom_path = Path(os.environ.get("ROM_PATH", "roms/pokemon_yellow.gb"))
     save_dir = Path(os.environ.get("SAVE_DIR", "saves/"))
 

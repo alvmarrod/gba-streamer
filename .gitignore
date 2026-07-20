@@ -224,3 +224,9 @@ tests/resources/*.gb
 tests/resources/*.gbc
 tests/resources/*.ram
 tests/resources/*.sav
+
+# Runtime directories
+config/bots.yaml
+config/gba-streamer.yaml
+roms/
+saves/

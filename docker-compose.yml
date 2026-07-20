@@ -1,0 +1,21 @@
+services:
+  gba-streamer:
+    build: .
+    container_name: gba-streamer
+    ports:
+      - "8080:8080"
+    env_file: .env
+    volumes:
+      - ./saves:/app/saves       # game state persistence (bind mount)
+      - ./roms:/app/roms:ro      # GBA ROM file (read-only, required)
+      - ./config:/app/config:ro  # YAML config (read-only)
+    restart: unless-stopped
+    networks:
+      - proxy-network
+
+networks:
+  proxy-network:
+    external: true
+    # Pre-existing network. tg-if and RabbitMQ live here.
+    # RabbitMQ is reachable at "rabbitmq:5672".
+    # Set RABBITMQ_HOST=rabbitmq in .env.
