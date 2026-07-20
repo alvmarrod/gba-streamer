@@ -5,6 +5,7 @@ class Metrics:
     def __init__(self) -> None:
         self._total_commands: int = 0
         self._connected_players: int = 0
+        self._total_players_seen: int = 0
         self._votes_processed: int = 0
         self._frames_executed: int = 0
 
@@ -15,6 +16,10 @@ class Metrics:
     @property
     def connected_players(self) -> int:
         return self._connected_players
+
+    @property
+    def total_players_seen(self) -> int:
+        return self._total_players_seen
 
     @property
     def votes_processed(self) -> int:
@@ -29,6 +34,7 @@ class Metrics:
 
     def increment_connected_players(self) -> None:
         self._connected_players += 1
+        self._total_players_seen += 1
 
     def decrement_connected_players(self) -> None:
         self._connected_players -= 1

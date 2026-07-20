@@ -6,6 +6,7 @@ class TestMetrics:
         m = Metrics()
         assert m.total_commands == 0
         assert m.connected_players == 0
+        assert m.total_players_seen == 0
         assert m.votes_processed == 0
         assert m.frames_executed == 0
 
@@ -20,6 +21,7 @@ class TestMetrics:
         m.increment_connected_players()
         m.increment_connected_players()
         assert m.connected_players == 2
+        assert m.total_players_seen == 2
 
     def test_decrement_connected_players(self) -> None:
         m = Metrics()
@@ -27,6 +29,16 @@ class TestMetrics:
         m.increment_connected_players()
         m.decrement_connected_players()
         assert m.connected_players == 1
+        assert m.total_players_seen == 2
+
+    def test_total_players_seen_never_decrements(self) -> None:
+        m = Metrics()
+        m.increment_connected_players()
+        m.increment_connected_players()
+        m.decrement_connected_players()
+        m.decrement_connected_players()
+        assert m.connected_players == 0
+        assert m.total_players_seen == 2
 
     def test_increment_votes_processed(self) -> None:
         m = Metrics()
