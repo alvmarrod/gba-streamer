@@ -1,0 +1,454 @@
+# Part 5 – Presentation Layer
+
+---
+
+# 1. Overview
+
+The Presentation layer exposes the application to external clients.
+
+It is responsible for:
+
+- Serving the Telegram WebApp
+- Exposing the internal HTTP API
+- Validating incoming requests
+- Mapping requests into DTOs
+- Returning responses
+
+The Presentation layer contains no business rules.
+
+Business operations are delegated to the Application layer through Use Cases.
+
+---
+
+# 2. Package Structure
+
+```text
+presentation/
+│
+├── api/
+│
+├── middleware/
+│
+├── webapp/
+│
+└── static/
+```
+
+---
+
+# 3. Responsibilities
+
+## API
+
+Exposes HTTP endpoints.
+
+Responsibilities:
+
+- Request routing
+- Request validation
+- DTO creation
+- Response serialization
+
+Business logic is never executed here.
+
+---
+
+## Middleware
+
+Provides cross-cutting functionality.
+
+Examples:
+
+- Error handling
+- Logging
+- Request timing
+- CORS
+- Security headers
+
+Middleware shall never contain business logic.
+
+---
+
+## WebApp
+
+Serves the Telegram Mini App.
+
+Responsibilities:
+
+- Serve HTML
+- Serve JavaScript
+- Serve CSS
+- Bootstrap the client application
+
+The WebApp is the primary user interface.
+
+---
+
+## Static
+
+Contains static assets.
+
+Examples:
+
+- JavaScript bundles
+- CSS
+- Images
+- Icons
+
+---
+
+# 4. Endpoint Groups
+
+The HTTP API is divided into functional groups.
+
+---
+
+## Session
+
+Examples:
+
+```text
+GET /api/session
+
+POST /api/session/start
+
+POST /api/session/stop
+
+POST /api/session/pause
+
+POST /api/session/resume
+```
+
+---
+
+## Player
+
+Examples:
+
+```text
+POST /api/player/connect
+
+POST /api/player/disconnect
+```
+
+---
+
+## Input
+
+Examples:
+
+```text
+POST /api/input
+```
+
+---
+
+## Administration
+
+Examples:
+
+```text
+POST /api/control-mode
+
+POST /api/config/reload
+```
+
+---
+
+## Monitoring
+
+Examples:
+
+```text
+GET /api/health
+
+GET /api/metrics
+```
+
+---
+
+# 5. Request Lifecycle
+
+Every request follows the same execution pipeline.
+
+```text
+HTTP Request
+
+↓
+
+Router
+
+↓
+
+Middleware
+
+↓
+
+Request Validation
+
+↓
+
+DTO
+
+↓
+
+Mapper
+
+↓
+
+Use Case
+
+↓
+
+Application
+
+↓
+
+Domain
+
+↓
+
+Response DTO
+
+↓
+
+HTTP Response
+```
+
+No request bypasses this lifecycle.
+
+---
+
+# 6. Telegram WebApp
+
+The Telegram WebApp is the primary client of the application.
+
+Responsibilities:
+
+- Display emulator video
+- Capture player input
+- Display session information
+- Display connection state
+- Call backend HTTP endpoints
+
+The WebApp contains no business logic.
+
+Business decisions remain on the server.
+
+---
+
+# 7. Client Architecture
+
+```text
+Telegram
+
+↓
+
+Mini App
+
+↓
+
+HTTP API
+
+↓
+
+Application
+
+↓
+
+Domain
+```
+
+The WebRTC video stream is established independently from the HTTP API.
+
+---
+
+# 8. Video Flow
+
+The client retrieves video through WebRTC.
+
+```text
+Telegram Mini App
+
+↓
+
+WebRTC
+
+↓
+
+AiortcVideoPublisher
+```
+
+The HTTP API is not involved in video transport.
+
+---
+
+# 9. Control Flow
+
+Player input follows this path.
+
+```text
+Telegram Mini App
+
+↓
+
+HTTP POST
+
+↓
+
+Input Endpoint
+
+↓
+
+SubmitInputUseCase
+
+↓
+
+GameSession
+```
+
+The WebRTC connection is independent from player controls.
+
+---
+
+# 10. Presentation UML
+
+```text
+                 Telegram
+
+                      │
+
+                      ▼
+
+               Telegram WebApp
+
+                 │         │
+
+                 │         │
+
+                 ▼         ▼
+
+             HTTP API   WebRTC
+
+                 │
+
+                 ▼
+
+             Middleware
+
+                 │
+
+                 ▼
+
+               Mapper
+
+                 │
+
+                 ▼
+
+              Use Cases
+```
+
+---
+
+# 11. Dependency Rules
+
+Presentation may depend on:
+
+- Application
+- DTOs
+- Mappers
+
+Presentation shall never depend on:
+
+- Domain
+- Infrastructure implementations
+
+Framework-specific code shall remain isolated inside Presentation.
+
+---
+
+# 12. Presentation Dependency DAG
+
+```text
+Static Assets
+
+↓
+
+WebApp
+
+↓
+
+Middleware
+
+↓
+
+API Controllers
+
+↓
+
+DTO
+
+↓
+
+Mappers
+
+↓
+
+Use Cases
+```
+
+No cyclic dependencies are permitted.
+
+---
+
+# 13. Error Handling
+
+Presentation is responsible for translating application exceptions into HTTP responses.
+
+Examples:
+
+```text
+Domain Exception
+
+↓
+
+Application Exception
+
+↓
+
+HTTP Status
+
+↓
+
+JSON Response
+```
+
+Internal implementation details shall never be exposed to clients.
+
+---
+
+# 14. Security Responsibilities
+
+Presentation is responsible for:
+
+- Validating Telegram WebApp initialization data
+- Validating request payloads
+- Setting security-related HTTP headers
+- Configuring CORS
+- Preventing malformed requests
+
+Authentication and authorization policies remain configurable.
+
+---
+
+# 15. Implementation Rules
+
+- Controllers shall remain thin.
+- Controllers invoke exactly one Use Case.
+- Validation occurs before DTO creation.
+- Business logic is forbidden.
+- Static assets are served independently of the API.
+- WebRTC signalling endpoints belong to the Presentation layer.
+- Every endpoint shall return deterministic response formats.
+
