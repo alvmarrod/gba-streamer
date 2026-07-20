@@ -34,6 +34,7 @@ class HealthCheckResponse:
     session_state: SessionState
     connected_players: int
     is_healthy: bool
+    components: list[dict[str, object]]
 
 
 @dataclass(frozen=True)

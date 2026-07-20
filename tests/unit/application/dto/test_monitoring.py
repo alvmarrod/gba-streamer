@@ -82,6 +82,7 @@ class TestHealthCheckDTOs:
             session_state=SessionState.RUNNING,
             connected_players=3,
             is_healthy=True,
+            components=[],
         )
         assert resp.session_state == SessionState.RUNNING
         assert resp.connected_players == 3
@@ -92,6 +93,7 @@ class TestHealthCheckDTOs:
             session_state=SessionState.RUNNING,
             connected_players=3,
             is_healthy=True,
+            components=[],
         )
         with pytest.raises(AttributeError):
             resp.is_healthy = False  # type: ignore[misc]

@@ -7,6 +7,7 @@ from consumer.application.ports.framebuffer_provider_port import (
     FramebufferProviderPort,
 )
 from consumer.application.ports.game_session_provider import GameSessionProvider
+from consumer.application.ports.health_indicator_port import HealthIndicatorPort
 from consumer.application.ports.logger_port import LoggerPort
 from consumer.application.ports.metrics_publisher_port import MetricsPublisherPort
 from consumer.application.ports.save_repository_port import SaveRepositoryPort
@@ -20,6 +21,7 @@ __all__ = [
     "EmulatorControlPort",
     "FramebufferProviderPort",
     "GameSessionProvider",
+    "HealthIndicatorPort",
     "LoggerPort",
     "MetricsPublisherPort",
     "SaveRepositoryPort",

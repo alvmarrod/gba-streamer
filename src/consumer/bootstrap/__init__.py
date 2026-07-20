@@ -62,6 +62,9 @@ from consumer.infrastructure.configuration.file_configuration_provider import (
     FileConfigurationProvider,
 )
 from consumer.infrastructure.emulator.pyboy_adapter import PyBoyAdapter
+from consumer.infrastructure.health.composite_indicator import (
+    CompositeHealthIndicator,
+)
 from consumer.infrastructure.monitoring.logger_adapter import LoggerAdapter
 from consumer.infrastructure.monitoring.metrics_publisher import MetricsPublisher
 from consumer.infrastructure.persistence.file_save_repository import (
@@ -154,6 +157,12 @@ def create_app(
         authorizer,
     )
 
+    scheduler = Scheduler(logger)
+
+    health_indicator = CompositeHealthIndicator(
+        scheduler, pyboy, save_repository, publisher
+    )
+
     use_cases: dict[str, object] = {
         "start_session": start_session_uc,
         "stop_session": stop_session_uc,
@@ -172,14 +181,15 @@ def create_app(
             session_provider, config_provider
         ),
         "collect_metrics": CollectMetricsUseCase(session_provider, metrics_publisher),
-        "health_check": HealthCheckUseCase(session_provider),
+        "health_check": HealthCheckUseCase(
+            session_provider, health_indicator=health_indicator
+        ),
         "get_status": get_status_uc,
         "autosave": AutosaveUseCase(session_provider, pyboy, save_repository),
         "manual_save": ManualSaveUseCase(session_provider, pyboy, save_repository),
         "resolve_vote": ResolveVoteUseCase(session_provider),
     }
 
-    scheduler = Scheduler(logger)
     scheduler.register(
         TickTask(use_cases["tick_emulator"], _FRAME_INTERVAL, logger)  # type: ignore[arg-type]
     )

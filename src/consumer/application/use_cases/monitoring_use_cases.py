@@ -12,6 +12,7 @@ from consumer.application.dto.monitoring import (
 )
 from consumer.application.mappers.monitoring_mapper import MonitoringMapper
 from consumer.application.ports.game_session_provider import GameSessionProvider
+from consumer.application.ports.health_indicator_port import HealthIndicatorPort
 from consumer.application.ports.metrics_publisher_port import (
     MetricsPublisherPort,
 )
@@ -40,8 +41,13 @@ class CollectMetricsUseCase:
 
 
 class HealthCheckUseCase:
-    def __init__(self, session_provider: GameSessionProvider) -> None:
+    def __init__(
+        self,
+        session_provider: GameSessionProvider,
+        health_indicator: HealthIndicatorPort | None = None,
+    ) -> None:
         self._session_provider = session_provider
+        self._health_indicator = health_indicator
 
     async def execute(
         self,
@@ -53,10 +59,19 @@ class HealthCheckUseCase:
             SessionValidator.validate(session)
         except ValueError:
             is_healthy = False
+
+        components: list[dict[str, object]] = []
+        if self._health_indicator is not None:
+            components = await self._health_indicator.check()
+            for c in components:
+                if not c.get("healthy"):
+                    is_healthy = False
+
         return MonitoringMapper.to_health_response(
             session_state=session.current_state,
             connected_players=session.players.count,
             is_healthy=is_healthy,
+            components=components,
         )
 
 

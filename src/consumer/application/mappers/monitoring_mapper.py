@@ -32,11 +32,13 @@ class MonitoringMapper:
         session_state: SessionState,
         connected_players: int,
         is_healthy: bool,
+        components: list[dict[str, object]] | None = None,
     ) -> HealthCheckResponse:
         return HealthCheckResponse(
             session_state=session_state,
             connected_players=connected_players,
             is_healthy=is_healthy,
+            components=components or [],
         )
 
     @staticmethod

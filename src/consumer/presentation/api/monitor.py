@@ -23,6 +23,7 @@ async def health_check(request: web.Request) -> web.Response:
             "session_state": PresentationMapper.enum_name(response.session_state),
             "connected_players": response.connected_players,
             "is_healthy": response.is_healthy,
+            "components": response.components,
         }
     )
 

@@ -42,6 +42,7 @@ class TestGetSession:
             session_state=SessionState.RUNNING,
             connected_players=2,
             is_healthy=True,
+            components=[],
         )
         async with TestClient(TestServer(_make_app(health_check=mock_uc))) as client:
             resp = await client.get("/api/session")

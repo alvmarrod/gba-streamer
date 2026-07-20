@@ -34,6 +34,7 @@ class TestHealthCheck:
             session_state=SessionState.RUNNING,
             connected_players=3,
             is_healthy=True,
+            components=[],
         )
         async with TestClient(TestServer(_make_app(health_check=mock_uc))) as client:
             resp = await client.get("/api/health")
@@ -49,6 +50,7 @@ class TestHealthCheck:
             session_state=SessionState.STOPPED,
             connected_players=0,
             is_healthy=False,
+            components=[],
         )
         async with TestClient(TestServer(_make_app(health_check=mock_uc))) as client:
             resp = await client.get("/api/health")
