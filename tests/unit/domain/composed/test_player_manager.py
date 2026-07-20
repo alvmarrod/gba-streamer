@@ -3,7 +3,7 @@ from uuid import uuid4
 import pytest
 
 from consumer.domain.entities.player import Player
-from consumer.domain.entities.player_manager import PlayerManager
+from consumer.domain.composed.player_manager import PlayerManager
 from consumer.domain.exceptions import (
     PlayerAlreadyConnectedException,
     PlayerNotConnectedException,

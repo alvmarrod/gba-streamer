@@ -1,11 +1,15 @@
 from __future__ import annotations
 
-from consumer.domain.entities.player import Player
+from typing import TYPE_CHECKING
+
 from consumer.domain.exceptions import (
     PlayerAlreadyConnectedException,
     PlayerNotConnectedException,
 )
 from consumer.domain.value_objects import PlayerId
+
+if TYPE_CHECKING:
+    from consumer.domain.entities.player import Player
 
 
 class PlayerManager:

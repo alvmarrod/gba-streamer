@@ -6,7 +6,7 @@ from consumer.domain.composed.save_manager import SaveManager
 from consumer.domain.composed.session_state_machine import SessionStateMachine
 from consumer.domain.composed.vote_round import VoteRound
 from consumer.domain.entities.player import Player
-from consumer.domain.entities.player_manager import PlayerManager
+from consumer.domain.composed.player_manager import PlayerManager
 from consumer.domain.enums import ControlMode, SessionState
 from consumer.domain.exceptions import (
     PlayerNotConnectedException,
