@@ -1,7 +1,11 @@
 from __future__ import annotations
 
 from aiohttp import web  # type: ignore[import-untyped]
-from aiortc import RTCPeerConnection, RTCSessionDescription  # type: ignore[import-untyped]
+from aiortc import (
+    RTCConfiguration,
+    RTCPeerConnection,
+    RTCSessionDescription,
+)  # type: ignore[import-untyped]
 
 from consumer.infrastructure.streaming.aiortc_video_publisher import (
     AiortcVideoPublisher,
@@ -10,6 +14,7 @@ from consumer.infrastructure.streaming.aiortc_video_publisher import (
 
 async def offer(request: web.Request) -> web.Response:
     publisher: AiortcVideoPublisher = request.app["publisher"]
+    ice_config: RTCConfiguration = request.app["ice_config"]
 
     try:
         body = await request.json()
@@ -22,7 +27,7 @@ async def offer(request: web.Request) -> web.Response:
     if body["type"] != "offer":
         return web.json_response({"error": "Expected offer"}, status=400)
 
-    pc = RTCPeerConnection()
+    pc = RTCPeerConnection(configuration=ice_config)
     publisher.add_peer(pc)
 
     try:

@@ -4,6 +4,7 @@ from unittest.mock import MagicMock
 
 from aiohttp import web  # type: ignore[import-untyped]
 from aiohttp.test_utils import TestClient, TestServer  # type: ignore[import-untyped]
+from aiortc import RTCConfiguration, RTCIceServer  # type: ignore[import-untyped]
 
 from consumer.presentation.api.signalling import offer, register_signalling_routes
 
@@ -11,6 +12,9 @@ from consumer.presentation.api.signalling import offer, register_signalling_rout
 def _make_app(publisher: object | None = None) -> web.Application:
     app = web.Application()
     app["publisher"] = publisher
+    app["ice_config"] = RTCConfiguration(
+        iceServers=[RTCIceServer(urls=["stun:stun.l.google.com:19302"])]
+    )
     app.router.add_post("/api/webrtc/offer", offer)
     return app
 

@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from aiohttp import web  # type: ignore[import-untyped]
 from aiohttp.test_utils import TestClient, TestServer  # type: ignore[import-untyped]
+from aiortc import RTCConfiguration, RTCIceServer  # type: ignore[import-untyped]
 
 from consumer.application.ports.framebuffer_provider_port import (
     FramebufferProviderPort,
@@ -17,11 +18,17 @@ class StubFramebufferProvider(FramebufferProviderPort):
         return b"\x80\x90\xa0\xff" * (160 * 144)
 
 
+_STUB_ICE = RTCConfiguration(
+    iceServers=[RTCIceServer(urls=["stun:stun.l.google.com:19302"])]
+)
+
+
 class TestSignallingIntegration:
     async def test_offer_endpoint_exists(self) -> None:
         publisher = AiortcVideoPublisher(StubFramebufferProvider())
         app = web.Application()
         app["publisher"] = publisher
+        app["ice_config"] = _STUB_ICE
         register_signalling_routes(app)
 
         async with TestClient(TestServer(app)) as client:
@@ -39,6 +46,7 @@ class TestSignallingIntegration:
         publisher = AiortcVideoPublisher(StubFramebufferProvider())
         app = web.Application()
         app["publisher"] = publisher
+        app["ice_config"] = _STUB_ICE
         register_signalling_routes(app)
 
         pc_client = RTCPeerConnection()
@@ -67,6 +75,7 @@ class TestSignallingIntegration:
         publisher = AiortcVideoPublisher(StubFramebufferProvider())
         app = web.Application()
         app["publisher"] = publisher
+        app["ice_config"] = _STUB_ICE
         register_signalling_routes(app)
 
         async with TestClient(TestServer(app)) as client:

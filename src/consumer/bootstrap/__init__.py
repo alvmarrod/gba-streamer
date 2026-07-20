@@ -73,6 +73,7 @@ from consumer.infrastructure.persistence.singleton_game_session_provider import 
 from consumer.infrastructure.streaming.aiortc_video_publisher import (
     AiortcVideoPublisher,
 )
+from consumer.infrastructure.streaming.ice_config import IceConfigProvider
 from consumer.infrastructure.telegram.rabbitmq_adapter import (
     RabbitMQTelegramAdapter,
 )
@@ -205,6 +206,7 @@ def create_app(
 
     app = web.Application()
     app["publisher"] = publisher
+    app["ice_config"] = IceConfigProvider().configuration
     app["scheduler"] = scheduler
     app["pyboy"] = pyboy
     app["telegram_adapter"] = telegram_adapter
