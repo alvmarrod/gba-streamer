@@ -90,6 +90,11 @@ class GameSession:
         self._players.disconnect(player_id)
         self._metrics.decrement_connected_players()
 
+    def configure(self, configuration: SessionConfiguration) -> None:
+        self._configuration = configuration
+        if configuration.control_mode == ControlMode.FIFO:
+            self._current_vote = None
+
     def change_control_mode(self, new_mode: ControlMode) -> None:
         if new_mode == self._configuration.control_mode:
             return
