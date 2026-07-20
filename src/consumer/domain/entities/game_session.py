@@ -12,6 +12,7 @@ from consumer.domain.exceptions import (
     PlayerNotConnectedException,
     SessionNotRunningException,
 )
+from consumer.domain.services.session_validator import SessionValidator
 from consumer.domain.value_objects import (
     GameInput,
     PlayerId,
@@ -38,6 +39,9 @@ class GameSession:
     @property
     def session_id(self) -> SessionId:
         return self._session_id
+
+    def _validate(self) -> None:
+        SessionValidator.validate(self)
 
     @property
     def configuration(self) -> SessionConfiguration:
@@ -69,19 +73,24 @@ class GameSession:
 
     def start(self) -> None:
         self._state_machine.transition_to(SessionState.RUNNING)
+        self._validate()
 
     def stop(self) -> None:
         self._state_machine.transition_to(SessionState.STOPPING)
+        self._validate()
 
     def pause(self) -> None:
         self._state_machine.transition_to(SessionState.PAUSED)
+        self._validate()
 
     def resume(self) -> None:
         self._state_machine.transition_to(SessionState.RUNNING)
+        self._validate()
 
     def connect_player(self, player: Player) -> None:
         self._players.connect(player)
         self._metrics.increment_connected_players()
+        self._validate()
 
     def disconnect_player(self, player_id: PlayerId) -> None:
         player = self._players.get(player_id)
@@ -89,6 +98,7 @@ class GameSession:
             raise PlayerNotConnectedException(f"Player {player_id.value} not connected")
         self._players.disconnect(player_id)
         self._metrics.decrement_connected_players()
+        self._validate()
 
     def configure(self, configuration: SessionConfiguration) -> None:
         self._configuration = configuration
@@ -105,6 +115,7 @@ class GameSession:
         )
         if new_mode == ControlMode.FIFO:
             self._current_vote = None
+        self._validate()
 
     def submit_input(self, game_input: GameInput) -> None:
         if self._state_machine.current_state != SessionState.RUNNING:
