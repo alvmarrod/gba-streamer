@@ -14,7 +14,7 @@ from consumer.domain.value_objects import (
 )
 
 
-def _make_session(control_mode: ControlMode = ControlMode.FIFO) -> GameSession:
+def make_session(control_mode: ControlMode = ControlMode.FIFO) -> GameSession:
     return GameSession(
         session_id=SessionId(uuid4()),
         configuration=SessionConfiguration(
@@ -33,18 +33,18 @@ def _connect_player(session: GameSession) -> Player:
 
 class TestSessionValidator:
     def test_valid_session_passes(self) -> None:
-        session = _make_session()
+        session = make_session()
         SessionValidator.validate(session)
 
     def test_player_count_mismatch_raises(self) -> None:
-        session = _make_session()
+        session = make_session()
         session._metrics._connected_players = 5
 
         with pytest.raises(ValueError, match="Player count mismatch"):
             SessionValidator.validate(session)
 
     def test_total_players_seen_less_than_connected_raises(self) -> None:
-        session = _make_session()
+        session = make_session()
         _connect_player(session)
         _connect_player(session)
 
@@ -56,7 +56,7 @@ class TestSessionValidator:
     def test_fifo_mode_with_vote_round_raises(self) -> None:
         from consumer.domain.composed.vote_round import VoteRound
 
-        session = _make_session(control_mode=ControlMode.FIFO)
+        session = make_session(control_mode=ControlMode.FIFO)
         session._current_vote = VoteRound()
 
         with pytest.raises(ValueError, match="FIFO mode active"):

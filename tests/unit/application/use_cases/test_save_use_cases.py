@@ -1,43 +1,16 @@
 from __future__ import annotations
 
-from datetime import timedelta
-from uuid import uuid4
 
+from tests.helpers.factories import make_session
+from tests.helpers.stub_providers import StubSessionProvider
 
 from consumer.application.dto.save import AutosaveRequest, ManualSaveRequest
-from consumer.application.ports.game_session_provider import GameSessionProvider
 from consumer.application.ports.save_repository_port import SaveRepositoryPort
 from consumer.application.ports.snapshot_port import SnapshotPort
 from consumer.application.use_cases.save_use_cases import (
     AutosaveUseCase,
     ManualSaveUseCase,
 )
-from consumer.domain.entities.game_session import GameSession
-from consumer.domain.enums import ControlMode
-from consumer.domain.value_objects import (
-    SessionConfiguration,
-    SessionId,
-)
-
-
-def _make_session() -> GameSession:
-    config = SessionConfiguration(
-        control_mode=ControlMode.FIFO,
-        voting_interval=timedelta(seconds=1),
-        autosave_interval=timedelta(seconds=15),
-    )
-    return GameSession(
-        session_id=SessionId(value=uuid4()),
-        configuration=config,
-    )
-
-
-class StubSessionProvider(GameSessionProvider):
-    def __init__(self, session: GameSession) -> None:
-        self._session = session
-
-    async def get_session(self) -> GameSession:
-        return self._session
 
 
 class StubSnapshotPort(SnapshotPort):
@@ -65,7 +38,7 @@ class StubSaveRepository(SaveRepositoryPort):
 
 class TestAutosaveUseCase:
     async def test_autosave_persists_snapshot(self) -> None:
-        session = _make_session()
+        session = make_session()
         provider = StubSessionProvider(session)
         snapshot_port = StubSnapshotPort(data=b"emulator-state")
         save_repo = StubSaveRepository()
@@ -80,7 +53,7 @@ class TestAutosaveUseCase:
         assert response.save_count == 1
 
     async def test_autosave_increments_count(self) -> None:
-        session = _make_session()
+        session = make_session()
         provider = StubSessionProvider(session)
         snapshot_port = StubSnapshotPort()
         save_repo = StubSaveRepository()
@@ -94,7 +67,7 @@ class TestAutosaveUseCase:
 
 class TestManualSaveUseCase:
     async def test_manual_save_persists_snapshot(self) -> None:
-        session = _make_session()
+        session = make_session()
         provider = StubSessionProvider(session)
         snapshot_port = StubSnapshotPort(data=b"manual-save")
         save_repo = StubSaveRepository()

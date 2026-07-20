@@ -4,6 +4,9 @@ from datetime import datetime, timedelta, timezone
 from uuid import uuid4
 
 
+from tests.helpers.factories import make_session
+from tests.helpers.stub_providers import StubSessionProvider
+
 from consumer.application.dto.administration import (
     ChangeControlModeRequest,
     ReloadConfigurationRequest,
@@ -11,41 +14,16 @@ from consumer.application.dto.administration import (
 from consumer.application.ports.configuration_provider_port import (
     ConfigurationProviderPort,
 )
-from consumer.application.ports.game_session_provider import GameSessionProvider
 from consumer.application.use_cases.administration_use_cases import (
     ChangeControlModeUseCase,
     ReloadConfigurationUseCase,
 )
-from consumer.domain.entities.game_session import GameSession
 from consumer.domain.enums import Button, ControlMode
 from consumer.domain.value_objects import (
     GameInput,
     PlayerId,
     SessionConfiguration,
-    SessionId,
 )
-
-
-def _make_session(
-    control_mode: ControlMode = ControlMode.FIFO,
-) -> GameSession:
-    config = SessionConfiguration(
-        control_mode=control_mode,
-        voting_interval=timedelta(seconds=1),
-        autosave_interval=timedelta(seconds=15),
-    )
-    return GameSession(
-        session_id=SessionId(value=uuid4()),
-        configuration=config,
-    )
-
-
-class StubSessionProvider(GameSessionProvider):
-    def __init__(self, session: GameSession) -> None:
-        self._session = session
-
-    async def get_session(self) -> GameSession:
-        return self._session
 
 
 class StubConfigurationProvider(ConfigurationProviderPort):
@@ -65,7 +43,7 @@ class StubConfigurationProvider(ConfigurationProviderPort):
 
 class TestChangeControlModeUseCase:
     async def test_change_to_voting(self) -> None:
-        session = _make_session(control_mode=ControlMode.FIFO)
+        session = make_session(control_mode=ControlMode.FIFO)
         provider = StubSessionProvider(session)
         use_case = ChangeControlModeUseCase(provider)
 
@@ -77,7 +55,7 @@ class TestChangeControlModeUseCase:
         assert session.configuration.control_mode == ControlMode.VOTING
 
     async def test_change_to_fifo_clears_vote(self) -> None:
-        session = _make_session(control_mode=ControlMode.VOTING)
+        session = make_session(control_mode=ControlMode.VOTING)
         session.start()
         pid = PlayerId(value=uuid4())
         session.submit_input(
@@ -100,7 +78,7 @@ class TestChangeControlModeUseCase:
         assert session.current_vote is None
 
     async def test_change_to_same_mode_is_noop(self) -> None:
-        session = _make_session(control_mode=ControlMode.FIFO)
+        session = make_session(control_mode=ControlMode.FIFO)
         provider = StubSessionProvider(session)
         use_case = ChangeControlModeUseCase(provider)
 
@@ -113,7 +91,7 @@ class TestChangeControlModeUseCase:
 
 class TestReloadConfigurationUseCase:
     async def test_reload_updates_session_config(self) -> None:
-        session = _make_session(control_mode=ControlMode.FIFO)
+        session = make_session(control_mode=ControlMode.FIFO)
         provider = StubSessionProvider(session)
         new_config = SessionConfiguration(
             control_mode=ControlMode.VOTING,
