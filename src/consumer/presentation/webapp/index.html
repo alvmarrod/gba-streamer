@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>GBA Streamer</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div id="app">
+        <header id="header">
+            <h1>GBA Streamer</h1>
+            <span id="connection-status" class="status disconnected">Disconnected</span>
+        </header>
+
+        <main id="main">
+            <section id="video-section">
+                <video id="video" autoplay muted playsinline></video>
+                <div id="video-overlay" class="hidden">
+                    <span>Connecting to stream...</span>
+                </div>
+            </section>
+
+            <section id="controls-section">
+                <div id="gamepad">
+                    <div id="dpad">
+                        <button class="dpad-btn dpad-up" data-button="up">&#9650;</button>
+                        <button class="dpad-btn dpad-left" data-button="left">&#9664;</button>
+                        <button class="dpad-btn dpad-right" data-button="right">&#9654;</button>
+                        <button class="dpad-btn dpad-down" data-button="down">&#9660;</button>
+                    </div>
+                    <div id="action-buttons">
+                        <button class="action-btn btn-b" data-button="b">B</button>
+                        <button class="action-btn btn-a" data-button="a">A</button>
+                    </div>
+                    <div id="system-buttons">
+                        <button class="system-btn" data-button="select">SELECT</button>
+                        <button class="system-btn" data-button="start">START</button>
+                    </div>
+                </div>
+            </section>
+
+            <section id="session-section">
+                <div id="session-info">
+                    <span id="session-state">No session</span>
+                    <span id="player-count">0 players</span>
+                </div>
+                <div id="session-actions">
+                    <button id="btn-start" class="session-action">Start</button>
+                    <button id="btn-stop" class="session-action" disabled>Stop</button>
+                    <button id="btn-pause" class="session-action" disabled>Pause</button>
+                    <button id="btn-resume" class="session-action hidden">Resume</button>
+                </div>
+            </section>
+        </main>
+    </div>
+    <script src="/static/app.js"></script>
+</body>
+</html>
