@@ -218,3 +218,9 @@ __marimo__/
 .streamlit/secrets.toml
 # Added by code-review-graph
 .code-review-graph/
+
+# Game Boy ROMs and save files (user-provided, not committed)
+tests/resources/*.gb
+tests/resources/*.gbc
+tests/resources/*.ram
+tests/resources/*.sav
