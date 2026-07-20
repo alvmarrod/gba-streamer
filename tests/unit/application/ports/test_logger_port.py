@@ -10,16 +10,16 @@ class TestLoggerPort:
 
     def test_concrete_subclass(self) -> None:
         class Stub(LoggerPort):
-            async def debug(self, message: str) -> None:
+            async def debug(self, message: str, **kwargs: object) -> None:
                 pass
 
-            async def info(self, message: str) -> None:
+            async def info(self, message: str, **kwargs: object) -> None:
                 pass
 
-            async def warning(self, message: str) -> None:
+            async def warning(self, message: str, **kwargs: object) -> None:
                 pass
 
-            async def error(self, message: str) -> None:
+            async def error(self, message: str, **kwargs: object) -> None:
                 pass
 
         port = Stub()
