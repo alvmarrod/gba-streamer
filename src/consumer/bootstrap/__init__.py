@@ -2,6 +2,8 @@ from __future__ import annotations
 
 import asyncio
 import logging
+import os
+import sys
 from datetime import timedelta
 from pathlib import Path
 from typing import Awaitable, Callable
@@ -65,6 +67,7 @@ from consumer.infrastructure.emulator.pyboy_adapter import PyBoyAdapter
 from consumer.infrastructure.health.composite_indicator import (
     CompositeHealthIndicator,
 )
+from consumer.infrastructure.monitoring.json_formatter import JsonFormatter
 from consumer.infrastructure.monitoring.logger_adapter import LoggerAdapter
 from consumer.infrastructure.monitoring.metrics_publisher import MetricsPublisher
 from consumer.infrastructure.persistence.file_save_repository import (
@@ -238,10 +241,10 @@ def create_app(
 
 
 def _setup_logging() -> None:
-    logging.basicConfig(
-        level=logging.INFO,
-        format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
-    )
+    level = os.environ.get("LOG_LEVEL", "INFO").upper()
+    handler = logging.StreamHandler(sys.stderr)
+    handler.setFormatter(JsonFormatter())
+    logging.basicConfig(level=level, handlers=[handler], force=True)
 
 
 def _make_startup(
