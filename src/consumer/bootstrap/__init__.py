@@ -25,6 +25,7 @@ from consumer.application.use_cases.administration_use_cases import (
     ChangeControlModeUseCase,
     ReloadConfigurationUseCase,
 )
+from consumer.application.dto.monitoring import CollectMetricsRequest
 from consumer.application.use_cases.gameplay_use_cases import (
     ResolveInputUseCase,
     SubmitInputUseCase,
@@ -233,7 +234,13 @@ def create_app(
     )
     app.on_shutdown.append(
         _make_shutdown(
-            logger, scheduler, publisher, save_repository, pyboy, telegram_adapter
+            logger,
+            scheduler,
+            publisher,
+            save_repository,
+            pyboy,
+            telegram_adapter,
+            use_cases["collect_metrics"],  # type: ignore[arg-type]
         )
     )
 
@@ -274,6 +281,7 @@ def _make_shutdown(
     save_repository: FileSaveRepository,
     pyboy: PyBoyAdapter,
     telegram_adapter: RabbitMQTelegramAdapter,
+    collect_metrics: CollectMetricsUseCase,
 ) -> Callable[[web.Application], Awaitable[None]]:
     async def shutdown(app: web.Application) -> None:
         await logger.info("application_stopping")
@@ -290,6 +298,13 @@ def _make_shutdown(
 
         await scheduler.stop()
         await publisher.close()
+
+        await logger.info("flushing_metrics")
+        try:
+            await collect_metrics.execute(CollectMetricsRequest())
+        except Exception:
+            pass
+
         await logger.info("final_snapshot")
         try:
             data = await pyboy.create_snapshot()
@@ -299,5 +314,6 @@ def _make_shutdown(
         await logger.info("pyboy_releasing")
         pyboy._executor.shutdown(wait=True)  # type: ignore[attr-defined]
         await logger.info("application_stopped")
+        logging.shutdown()
 
     return shutdown
