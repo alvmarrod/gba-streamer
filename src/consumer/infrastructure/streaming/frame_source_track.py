@@ -22,6 +22,7 @@ class FrameSourceTrack(VideoStreamTrack):
             await self._frame_event.wait()
         self._frame_event.clear()
         assert self._frame is not None
+        print(f"[recv] frame pts={self._frame.pts}", flush=True)
         return self._frame
 
     def push(self, frame: av.VideoFrame) -> None:

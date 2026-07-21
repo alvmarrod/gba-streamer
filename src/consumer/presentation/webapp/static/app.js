@@ -31,6 +31,7 @@
         overlay.classList.remove("hidden");
 
         peerConnection = new RTCPeerConnection();
+        window._pc = peerConnection;
 
         peerConnection.ontrack = (event) => {
             if (event.streams && event.streams[0]) {
