@@ -5,13 +5,15 @@
     const PLAYER_ID = sessionStorage.getItem("player_id") || crypto.randomUUID();
     sessionStorage.setItem("player_id", PLAYER_ID);
 
+    const DISPLAY_NAME = getDisplayName();
+
     let peerConnection = null;
     let sessionRunning = false;
     let prevFrames = 0;
     let prevTime = Date.now();
     let dataChannel = null;
     let pingInterval = null;
-    let smoothedLatency = 0;
+    let rttSamples = [];
 
     const $ = (sel) => document.querySelector(sel);
     const video = $("#video");
@@ -19,6 +21,18 @@
     const overlay = $("#video-overlay");
     const sessionState = $("#session-state");
     const playerCount = $("#player-count");
+
+    function getDisplayName() {
+        try {
+            if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.initDataUnsafe) {
+                const user = window.Telegram.WebApp.initDataUnsafe.user;
+                if (user) {
+                    return user.username ? "@" + user.username : (user.first_name || "Unknown");
+                }
+            }
+        } catch (e) { /* not in Telegram context */ }
+        return "Unknown";
+    }
 
     function setStatus(text, connected) {
         statusEl.textContent = text;
@@ -141,7 +155,7 @@
 
             const others = count > 1 ? " + " + (count - 1) + " others" : "";
             const playersEl = $("#players-display");
-            if (playersEl) playersEl.textContent = "Users Connected: You" + others;
+            if (playersEl) playersEl.textContent = "Users Connected: " + DISPLAY_NAME + " (You)" + others;
 
             sessionRunning = ["RUNNING", "PAUSED", "STARTING"].includes(data.session_state);
             $("#btn-start").disabled = sessionRunning;
@@ -184,7 +198,7 @@
         try {
             await api("POST", "/api/player/connect", {
                 player_id: PLAYER_ID,
-                display_name: "Player",
+                display_name: DISPLAY_NAME,
             });
         } catch (err) {
             console.error("Connect player failed:", err);
@@ -206,11 +220,19 @@
             const sent = parseInt(event.data, 10);
             if (isNaN(sent)) return;
             const rtt = Date.now() - sent;
-            smoothedLatency = smoothedLatency
-                ? Math.round(0.8 * smoothedLatency + 0.2 * rtt)
-                : rtt;
-            const el = $("#latency-display");
-            if (el) el.textContent = smoothedLatency + " ms";
+            const now = Date.now();
+            rttSamples.push({ rtt: rtt, time: now });
+            rttSamples = rttSamples.filter(function (s) { return now - s.time <= 30000; });
+            if (rttSamples.length > 0) {
+                const avg = Math.round(rttSamples.reduce(function (a, s) { return a + s.rtt; }, 0) / rttSamples.length);
+                const el = $("#latency-display");
+                if (el) {
+                    el.textContent = avg + " ms";
+                    el.className = "info-badge";
+                    if (avg >= 350) el.classList.add("latency-bad");
+                    else if (avg >= 250) el.classList.add("latency-warn");
+                }
+            }
         };
     }
 
@@ -219,6 +241,7 @@
             clearInterval(pingInterval);
             pingInterval = null;
         }
+        rttSamples = [];
         dataChannel = null;
     }
 

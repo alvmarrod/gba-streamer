@@ -244,6 +244,15 @@ body {
     font-weight: 600;
 }
 
+.latency-warn {
+    background: #d9a84a;
+}
+
+.latency-bad {
+    background: var(--danger);
+    color: white;
+}
+
 .info-text {
     font-size: 12px;
     color: var(--text-color);
