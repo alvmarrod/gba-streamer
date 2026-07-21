@@ -97,8 +97,10 @@ class GameSession:
         self._validate()
 
     def connect_player(self, player: Player) -> None:
+        is_new = self._players.get(player.player_id) is None
         self._players.connect(player)
-        self._metrics.increment_connected_players()
+        if is_new:
+            self._metrics.increment_connected_players()
         self._validate()
 
     def disconnect_player(self, player_id: PlayerId) -> None:

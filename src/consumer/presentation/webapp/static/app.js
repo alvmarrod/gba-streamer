@@ -2,7 +2,8 @@
     "use strict";
 
     const API_BASE = "";
-    const PLAYER_ID = crypto.randomUUID();
+    const PLAYER_ID = sessionStorage.getItem("player_id") || crypto.randomUUID();
+    sessionStorage.setItem("player_id", PLAYER_ID);
 
     let peerConnection = null;
     let sessionRunning = false;
@@ -64,6 +65,7 @@
             const state = peerConnection.connectionState;
             if (state === "failed" || state === "disconnected" || state === "closed") {
                 stopPing();
+                api("POST", "/api/player/disconnect", { player_id: PLAYER_ID }).catch(() => {});
                 setStatus("Disconnected", false);
                 overlay.classList.remove("hidden");
                 peerConnection = null;
@@ -254,6 +256,13 @@
         setInterval(updateSessionInfo, 5000);
         connectWebRTC();
         connectPlayer();
+
+        window.addEventListener("beforeunload", () => {
+            navigator.sendBeacon(
+                API_BASE + "/api/player/disconnect",
+                JSON.stringify({ player_id: PLAYER_ID })
+            );
+        });
     }
 
     if (document.readyState === "loading") {

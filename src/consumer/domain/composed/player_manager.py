@@ -3,7 +3,6 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from consumer.domain.exceptions import (
-    PlayerAlreadyConnectedException,
     PlayerNotConnectedException,
 )
 from consumer.domain.value_objects import PlayerId
@@ -17,10 +16,6 @@ class PlayerManager:
         self._players: dict[PlayerId, Player] = {}
 
     def connect(self, player: Player) -> None:
-        if player.player_id in self._players:
-            raise PlayerAlreadyConnectedException(
-                f"Player {player.player_id.value} already connected"
-            )
         self._players[player.player_id] = player
 
     def disconnect(self, player_id: PlayerId) -> Player:

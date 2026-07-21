@@ -5,7 +5,6 @@ import pytest
 from consumer.domain.entities.player import Player
 from consumer.domain.composed.player_manager import PlayerManager
 from consumer.domain.exceptions import (
-    PlayerAlreadyConnectedException,
     PlayerNotConnectedException,
 )
 from consumer.domain.value_objects import PlayerId
@@ -31,12 +30,12 @@ class TestPlayerManager:
         pm.connect(_make_player("Bob"))
         assert pm.count == 2
 
-    def test_connect_duplicate_raises(self) -> None:
+    def test_connect_duplicate_replaces(self) -> None:
         pm = PlayerManager()
         p = _make_player()
         pm.connect(p)
-        with pytest.raises(PlayerAlreadyConnectedException):
-            pm.connect(p)
+        pm.connect(p)
+        assert pm.count == 1
 
     def test_disconnect(self) -> None:
         pm = PlayerManager()
