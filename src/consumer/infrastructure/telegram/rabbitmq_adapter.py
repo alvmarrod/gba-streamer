@@ -105,6 +105,28 @@ class RabbitMQTelegramAdapter(TelegramMessagePort):
             routing_key="response",
         )
 
+    async def register_commands(self, bot_id: str) -> None:
+        if self._responses_exchange is None:
+            return
+        body = {
+            "action": "register",
+            "bot_id": bot_id,
+            "subscriber_id": "gba-streamer",
+            "commands": [
+                {"command": "gb-start", "description": "Start game session"},
+                {"command": "gb-stop", "description": "Stop game session"},
+                {"command": "gb-pause", "description": "Pause game"},
+                {"command": "gb-resume", "description": "Resume game"},
+                {"command": "gb-fifo", "description": "Change to FIFO mode"},
+                {"command": "gb-voting", "description": "Change to Voting mode"},
+                {"command": "gb-status", "description": "Show session status"},
+            ],
+        }
+        await self._responses_exchange.publish(
+            aio_pika.Message(body=json.dumps(body).encode("utf-8")),
+            routing_key="subscriber-commands",
+        )
+
     async def close(self) -> None:
         if self._connection:
             await self._connection.close()

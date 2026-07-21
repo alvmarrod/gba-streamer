@@ -72,6 +72,7 @@ def _make_uc(**kwargs: Any) -> HandleTelegramCommandUseCase:
         "get_status": AsyncMock(),
         "port": StubTelegramPort(),
         "auth": StubAuth(),
+        "webapp_url": "",
     }
     defaults.update(kwargs)
     return HandleTelegramCommandUseCase(
@@ -92,7 +93,7 @@ class TestHandleTelegramCommandUseCase:
         mock_change_mode.execute = AsyncMock()
         port = StubTelegramPort()
         uc = _make_uc(change_control_mode=mock_change_mode, port=port)
-        event = _make_event(command="fifo")
+        event = _make_event(command="gb-fifo")
 
         await uc.execute(event)
 
@@ -105,7 +106,7 @@ class TestHandleTelegramCommandUseCase:
         mock_change_mode.execute = AsyncMock()
         port = StubTelegramPort()
         uc = _make_uc(change_control_mode=mock_change_mode, port=port)
-        event = _make_event(command="voting")
+        event = _make_event(command="gb-voting")
 
         await uc.execute(event)
 
@@ -118,7 +119,7 @@ class TestHandleTelegramCommandUseCase:
         mock_start.execute = AsyncMock()
         port = StubTelegramPort()
         uc = _make_uc(start_session=mock_start, port=port)
-        event = _make_event(command="start")
+        event = _make_event(command="gb-start")
 
         await uc.execute(event)
 
@@ -131,7 +132,7 @@ class TestHandleTelegramCommandUseCase:
         mock_stop.execute = AsyncMock()
         port = StubTelegramPort()
         uc = _make_uc(stop_session=mock_stop, port=port)
-        event = _make_event(command="stop")
+        event = _make_event(command="gb-stop")
 
         await uc.execute(event)
 
@@ -161,7 +162,7 @@ class TestHandleTelegramCommandUseCase:
     async def test_admin_command_rejected_for_non_admin(self) -> None:
         port = StubTelegramPort()
         uc = _make_uc(port=port, auth=StubAuth(allowed=False))
-        event = _make_event(command="start")
+        event = _make_event(command="gb-start")
 
         await uc.execute(event)
 
@@ -186,7 +187,7 @@ class TestHandleTelegramCommandUseCase:
         )
         port = StubTelegramPort()
         uc = _make_uc(get_status=mock_status, port=port, auth=StubAuth(allowed=False))
-        event = _make_event(command="status")
+        event = _make_event(command="gb-status")
 
         await uc.execute(event)
 

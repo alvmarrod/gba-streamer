@@ -230,3 +230,6 @@ config/bots.yaml
 config/gba-streamer.yaml
 roms/
 saves/
+
+# MacOS
+**.DS_Store
