@@ -29,10 +29,10 @@ class TestControlMode:
 
 class TestSessionState:
     def test_member_count(self) -> None:
-        assert len(SessionState) == 5
+        assert len(SessionState) == 4
 
     def test_all_members(self) -> None:
-        expected = {"STARTING", "RUNNING", "PAUSED", "STOPPING", "STOPPED"}
+        expected = {"STARTING", "RUNNING", "PAUSED", "STOPPED"}
         assert {m.name for m in SessionState} == expected
 
     def test_members_are_unique(self) -> None:

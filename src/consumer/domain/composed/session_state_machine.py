@@ -6,10 +6,9 @@ from consumer.domain.enums import SessionState
 
 _VALID_TRANSITIONS: dict[SessionState, set[SessionState]] = {
     SessionState.STARTING: {SessionState.RUNNING},
-    SessionState.RUNNING: {SessionState.PAUSED, SessionState.STOPPING},
+    SessionState.RUNNING: {SessionState.PAUSED, SessionState.STOPPED},
     SessionState.PAUSED: {SessionState.RUNNING},
-    SessionState.STOPPING: {SessionState.STOPPED},
-    SessionState.STOPPED: set(),
+    SessionState.STOPPED: {SessionState.STARTING},
 }
 
 

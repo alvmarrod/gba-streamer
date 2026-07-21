@@ -29,7 +29,7 @@ class TestGameSessionStateTransitions:
         session = make_session()
         session.start()
         session.stop()
-        assert session.current_state == SessionState.STOPPING
+        assert session.current_state == SessionState.STOPPED
 
     def test_pause(self) -> None:
         session = make_session()
@@ -50,7 +50,7 @@ class TestGameSessionStateTransitions:
         session.pause()
         session.resume()
         session.stop()
-        assert session.current_state == SessionState.STOPPING
+        assert session.current_state == SessionState.STOPPED
 
 
 class TestGameSessionPlayers:

@@ -73,7 +73,7 @@ class TestStopSessionUseCase:
 
         response = await use_case.execute(StopSessionRequest())
 
-        assert response.state == SessionState.STOPPING
+        assert response.state == SessionState.STOPPED
 
 
 class TestPauseSessionUseCase:

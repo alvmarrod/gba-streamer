@@ -21,7 +21,6 @@ class SessionState(Enum):
     STARTING = auto()
     RUNNING = auto()
     PAUSED = auto()
-    STOPPING = auto()
     STOPPED = auto()
 
 

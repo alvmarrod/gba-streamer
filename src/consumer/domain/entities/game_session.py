@@ -79,7 +79,7 @@ class GameSession:
         self._validate()
 
     def stop(self) -> None:
-        self._state_machine.transition_to(SessionState.STOPPING)
+        self._state_machine.transition_to(SessionState.STOPPED)
         self._validate()
 
     def pause(self) -> None:

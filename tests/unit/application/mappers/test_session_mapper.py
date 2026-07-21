@@ -27,8 +27,8 @@ class TestSessionMapper:
         assert resp.state == SessionState.RUNNING
 
     def test_to_stop_response(self) -> None:
-        resp = SessionMapper.to_stop_response(SessionState.STOPPING)
-        assert resp.state == SessionState.STOPPING
+        resp = SessionMapper.to_stop_response(SessionState.STOPPED)
+        assert resp.state == SessionState.STOPPED
 
     def test_to_pause_response(self) -> None:
         resp = SessionMapper.to_pause_response(SessionState.PAUSED)

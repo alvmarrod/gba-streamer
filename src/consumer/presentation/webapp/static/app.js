@@ -33,7 +33,12 @@
         peerConnection = new RTCPeerConnection();
 
         peerConnection.ontrack = (event) => {
-            video.srcObject = event.streams[0];
+            if (event.streams && event.streams[0]) {
+                video.srcObject = event.streams[0];
+            } else {
+                const stream = new MediaStream([event.track]);
+                video.srcObject = stream;
+            }
             overlay.classList.add("hidden");
             setStatus("Connected", true);
         };

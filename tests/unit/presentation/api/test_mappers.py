@@ -43,7 +43,7 @@ class TestToButton:
 
 class TestToSessionState:
     def test_valid_states(self) -> None:
-        for name in ["starting", "running", "paused", "stopping", "stopped"]:
+        for name in ["starting", "running", "paused", "stopped"]:
             assert (
                 PresentationMapper.to_session_state(name) == SessionState[name.upper()]
             )

@@ -56,8 +56,8 @@ class TestStopSessionDTOs:
         assert req is not None
 
     def test_response_construction(self) -> None:
-        resp = StopSessionResponse(state=SessionState.STOPPING)
-        assert resp.state == SessionState.STOPPING
+        resp = StopSessionResponse(state=SessionState.STOPPED)
+        assert resp.state == SessionState.STOPPED
 
 
 class TestPauseSessionDTOs:
