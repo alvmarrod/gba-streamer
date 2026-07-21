@@ -52,8 +52,11 @@ class ResolveInputUseCase:
             vote_round = session.current_vote
             if vote_round is None:
                 return ResolveInputResponse()
+            if vote_round.applied:
+                return ResolveInputResponse()
             result = VoteResolver.resolve(vote_round)
             game_input = result.winning_input
+            vote_round.mark_applied()
 
         await self._emulator_control.execute_input(game_input)
         return ResolveInputResponse()

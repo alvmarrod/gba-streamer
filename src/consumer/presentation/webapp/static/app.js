@@ -5,7 +5,7 @@
     const PLAYER_ID = sessionStorage.getItem("player_id") || crypto.randomUUID();
     sessionStorage.setItem("player_id", PLAYER_ID);
 
-    const DISPLAY_NAME = getDisplayName();
+    let DISPLAY_NAME = getDisplayName();
 
     let peerConnection = null;
     let sessionRunning = false;
@@ -31,7 +31,7 @@
                 }
             }
         } catch (e) { /* not in Telegram context */ }
-        return "Unknown";
+        return localStorage.getItem("gba_name") || null;
     }
 
     function setStatus(text, connected) {
@@ -155,7 +155,7 @@
 
             const others = count > 1 ? " + " + (count - 1) + " others" : "";
             const playersEl = $("#players-display");
-            if (playersEl) playersEl.textContent = "Users Connected: " + DISPLAY_NAME + " (You)" + others;
+            if (playersEl) playersEl.textContent = "Users Connected: " + (DISPLAY_NAME || "Unknown") + " (You)" + others;
 
             sessionRunning = ["RUNNING", "PAUSED", "STARTING"].includes(data.session_state);
             $("#btn-start").disabled = sessionRunning;
@@ -183,13 +183,14 @@
             if (status.recent_actions && status.recent_actions.length > 0) {
                 const actionsEl = $("#actions-display");
                 if (actionsEl) {
-                    const parts = ["Last Actions:"];
                     const reversed = [...status.recent_actions].reverse();
+                    const parts = ["<b>Last Actions:</b>"];
                     for (let i = 0; i < reversed.length; i++) {
                         const a = reversed[i];
-                        parts.push(a.button + " (" + a.display_name + ")");
+                        const label = i === 0 ? "Last" : "  " + i;
+                        parts.push(label + ": " + a.button + " (" + a.display_name + ")");
                     }
-                    actionsEl.textContent = parts.join("\n");
+                    actionsEl.innerHTML = parts.join("<br>");
                 }
             }
         } catch { }
@@ -199,7 +200,7 @@
         try {
             await api("POST", "/api/player/connect", {
                 player_id: PLAYER_ID,
-                display_name: DISPLAY_NAME,
+                display_name: DISPLAY_NAME || "Unknown",
             });
         } catch (err) {
             console.error("Connect player failed:", err);
@@ -278,13 +279,40 @@
         });
     }
 
+    function showNamePrompt() {
+        const prompt = $("#name-prompt");
+        const input = $("#name-input");
+        const submit = $("#name-submit");
+        prompt.classList.remove("hidden");
+        input.focus();
+
+        function resolve() {
+            const name = input.value.trim() || "Unknown";
+            localStorage.setItem("gba_name", name);
+            DISPLAY_NAME = name;
+            prompt.classList.add("hidden");
+            connectWebRTC();
+            connectPlayer();
+        }
+
+        submit.addEventListener("click", resolve);
+        input.addEventListener("keydown", function (e) {
+            if (e.key === "Enter") resolve();
+        });
+    }
+
     function init() {
         setupGamepad();
         setupSessionActions();
         updateSessionInfo();
         setInterval(updateSessionInfo, 5000);
-        connectWebRTC();
-        connectPlayer();
+
+        if (!DISPLAY_NAME) {
+            showNamePrompt();
+        } else {
+            connectWebRTC();
+            connectPlayer();
+        }
 
         window.addEventListener("beforeunload", () => {
             navigator.sendBeacon(
