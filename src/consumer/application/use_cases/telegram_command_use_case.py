@@ -29,6 +29,7 @@ class HandleTelegramCommandUseCase:
         get_status: GetStatusUseCase,
         port: TelegramMessagePort,
         auth: AuthorizationPort,
+        webapp_url: str = "",
     ) -> None:
         self._start_session = start_session
         self._stop_session = stop_session
@@ -38,6 +39,7 @@ class HandleTelegramCommandUseCase:
         self._get_status = get_status
         self._port = port
         self._auth = auth
+        self._webapp_url = webapp_url
 
     async def execute(self, event: TelegramEvent) -> None:
         command = event.command
@@ -54,7 +56,7 @@ class HandleTelegramCommandUseCase:
             )
             return
 
-        if command != "status" and not self._auth.is_admin(event.from_user_id):
+        if command != "gb-status" and not self._auth.is_admin(event.from_user_id):
             await self._port.respond(
                 bot_id=event.bot_id,
                 chat_id=event.chat_id,
@@ -81,11 +83,18 @@ async def _handle_start(
             autosave_interval=timedelta(seconds=15),
         )
     )
+    payload: dict[str, object] = {"text": "Session started in FIFO mode."}
+    if self._webapp_url:
+        payload["reply_markup"] = {
+            "inline_keyboard": [
+                [{"text": "Play", "web_app": {"url": self._webapp_url}}]
+            ]
+        }
     await self._port.respond(
         bot_id=event.bot_id,
         chat_id=event.chat_id,
         response_type="text",
-        payload={"text": "Session started in FIFO mode."},
+        payload=payload,
         correlation_id=event.event_id,
     )
 
@@ -198,11 +207,11 @@ async def _handle_status(
 
 
 _COMMAND_MAP: dict[str, Callable[..., Awaitable[None]]] = {
-    "start": _handle_start,
-    "stop": _handle_stop,
-    "pause": _handle_pause,
-    "resume": _handle_resume,
-    "fifo": _handle_fifo,
-    "voting": _handle_voting,
-    "status": _handle_status,
+    "gb-start": _handle_start,
+    "gb-stop": _handle_stop,
+    "gb-pause": _handle_pause,
+    "gb-resume": _handle_resume,
+    "gb-fifo": _handle_fifo,
+    "gb-voting": _handle_voting,
+    "gb-status": _handle_status,
 }

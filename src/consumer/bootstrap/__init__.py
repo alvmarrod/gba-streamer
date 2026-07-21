@@ -124,9 +124,7 @@ def create_app(
     _setup_logging()
     logger = LoggerAdapter(_LOG)
 
-    session_config = asyncio.get_event_loop().run_until_complete(
-        _load_config(config_path)
-    )
+    session_config = asyncio.run(_load_config(config_path))
 
     pyboy = PyBoyAdapter(rom_path)
     save_repository = FileSaveRepository(save_dir)
@@ -134,7 +132,7 @@ def create_app(
 
     publisher = AiortcVideoPublisher(pyboy)
 
-    asyncio.get_event_loop().run_until_complete(_restore_save(save_repository, pyboy))
+    asyncio.run(_restore_save(save_repository, pyboy))
 
     session = GameSession(session_id=SessionId(uuid4()), configuration=session_config)
     session_provider: GameSessionProvider = SingletonGameSessionProvider(session)
@@ -150,6 +148,7 @@ def create_app(
 
     telegram_adapter = RabbitMQTelegramAdapter()
     authorizer = EnvAdminAuthorizer()
+    webapp_url = os.environ.get("WEBAPP_URL", "")
     telegram_command_uc = HandleTelegramCommandUseCase(
         start_session_uc,
         stop_session_uc,
@@ -159,6 +158,7 @@ def create_app(
         get_status_uc,
         telegram_adapter,
         authorizer,
+        webapp_url=webapp_url,
     )
 
     scheduler = Scheduler(logger)
@@ -263,6 +263,7 @@ def _make_startup(
     async def startup(app: web.Application) -> None:
         await telegram_adapter.connect()
         await telegram_adapter.subscribe(telegram_command.execute)
+        await telegram_adapter.register_commands("isabot")
         consumer_task = asyncio.create_task(telegram_adapter.start())
         app["_consumer_task"] = consumer_task
         await logger.info("telegram_connected")
