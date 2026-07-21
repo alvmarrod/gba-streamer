@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+import logging
 
 import av  # type: ignore[import-untyped]
 import numpy as np  # type: ignore[import-untyped]
@@ -12,6 +13,8 @@ from consumer.application.ports.framebuffer_provider_port import (
 )
 from consumer.application.ports.video_publisher_port import VideoPublisherPort
 from consumer.infrastructure.streaming.frame_source_track import FrameSourceTrack
+
+_log = logging.getLogger(__name__)
 
 
 class AiortcVideoPublisher(VideoPublisherPort):
@@ -25,6 +28,7 @@ class AiortcVideoPublisher(VideoPublisherPort):
         raw = await self._framebuffer_provider.get_framebuffer()
         frame = self._convert(raw)
         self._source_track.push(frame)
+        _log.info("frame_published pts=%d", frame.pts)
 
     def add_peer(self, pc: RTCPeerConnection) -> None:
         self._peer_connections.add(pc)

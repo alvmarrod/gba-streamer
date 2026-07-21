@@ -1,9 +1,12 @@
 from __future__ import annotations
 
 import asyncio
+import logging
 
 import av  # type: ignore[import-untyped]
 from aiortc.mediastreams import MediaStreamError, VideoStreamTrack  # type: ignore[import-untyped]
+
+_log = logging.getLogger(__name__)
 
 
 class FrameSourceTrack(VideoStreamTrack):
@@ -22,7 +25,7 @@ class FrameSourceTrack(VideoStreamTrack):
             await self._frame_event.wait()
         self._frame_event.clear()
         assert self._frame is not None
-        print(f"[recv] frame pts={self._frame.pts}", flush=True)
+        _log.info("frame_recv pts=%d", self._frame.pts)
         return self._frame
 
     def push(self, frame: av.VideoFrame) -> None:
