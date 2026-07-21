@@ -168,6 +168,8 @@ def create_app(
         scheduler, pyboy, save_repository, publisher
     )
 
+    resolve_input_uc = ResolveInputUseCase(session_provider, pyboy)
+
     use_cases: dict[str, object] = {
         "start_session": start_session_uc,
         "stop_session": stop_session_uc,
@@ -179,8 +181,10 @@ def create_app(
         "connect_player": ConnectPlayerUseCase(session_provider),
         "disconnect_player": DisconnectPlayerUseCase(session_provider),
         "submit_input": SubmitInputUseCase(session_provider),
-        "resolve_input": ResolveInputUseCase(session_provider, pyboy),
-        "tick_emulator": TickEmulatorUseCase(session_provider, pyboy, publisher),
+        "resolve_input": resolve_input_uc,
+        "tick_emulator": TickEmulatorUseCase(
+            session_provider, pyboy, publisher, resolve_input_uc
+        ),
         "change_control_mode": change_control_mode_uc,
         "reload_configuration": ReloadConfigurationUseCase(
             session_provider, config_provider

@@ -6,5 +6,8 @@ from consumer.domain.value_objects import GameInput
 
 class FIFOResolver:
     @staticmethod
-    def resolve(input_queue: InputQueue) -> GameInput:
-        return input_queue.dequeue()
+    def resolve(input_queue: InputQueue) -> GameInput | None:
+        try:
+            return input_queue.dequeue()
+        except IndexError:
+            return None

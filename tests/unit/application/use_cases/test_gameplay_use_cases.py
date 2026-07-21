@@ -80,15 +80,16 @@ class TestResolveInputUseCase:
         assert emulator.executed[0] is gi
         assert session.input_queue.size == 0
 
-    async def test_resolve_fifo_empty_queue_raises(self) -> None:
+    async def test_resolve_fifo_empty_queue_returns_empty(self) -> None:
         session = make_session(control_mode=ControlMode.FIFO)
         session.start()
         provider = StubSessionProvider(session)
         emulator = StubEmulatorControl()
         use_case = ResolveInputUseCase(provider, emulator)
 
-        with pytest.raises(IndexError):
-            await use_case.execute(ResolveInputRequest())
+        await use_case.execute(ResolveInputRequest())
+
+        assert len(emulator.executed) == 0
 
     async def test_resolve_voting_resolves_and_executes(self) -> None:
         session = make_session(control_mode=ControlMode.VOTING)
@@ -141,7 +142,8 @@ class TestTickEmulatorUseCase:
         provider = StubSessionProvider(session)
         emulator = StubEmulatorControl()
         publisher = StubVideoPublisher()
-        use_case = TickEmulatorUseCase(provider, emulator, publisher)
+        resolve_input = ResolveInputUseCase(provider, emulator)
+        use_case = TickEmulatorUseCase(provider, emulator, publisher, resolve_input)
 
         await use_case.execute(TickEmulatorRequest())
 

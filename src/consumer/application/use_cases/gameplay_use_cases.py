@@ -46,6 +46,8 @@ class ResolveInputUseCase:
 
         if mode == ControlMode.FIFO:
             game_input = FIFOResolver.resolve(session.input_queue)
+            if game_input is None:
+                return ResolveInputResponse()
         else:
             vote_round = session.current_vote
             if vote_round is None:
@@ -63,10 +65,12 @@ class TickEmulatorUseCase:
         session_provider: GameSessionProvider,
         emulator_control: EmulatorControlPort,
         video_publisher: VideoPublisherPort,
+        resolve_input: ResolveInputUseCase,
     ) -> None:
         self._session_provider = session_provider
         self._emulator_control = emulator_control
         self._video_publisher = video_publisher
+        self._resolve_input = resolve_input
 
     async def execute(
         self,
@@ -74,6 +78,7 @@ class TickEmulatorUseCase:
     ) -> TickEmulatorResponse:
         session = await self._session_provider.get_session()
         session.record_tick()
+        await self._resolve_input.execute(ResolveInputRequest())
         await self._emulator_control.tick()
         await self._video_publisher.publish()
         return TickEmulatorResponse()

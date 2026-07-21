@@ -7,6 +7,8 @@ from aiohttp import web  # type: ignore[import-untyped]
 
 from consumer.application.ports.logger_port import LoggerPort
 
+_QUIET_PATHS: set[str] = {"/api/session", "/api/status", "/api/health"}
+
 
 def request_logger_middleware(
     logger: LoggerPort,
@@ -33,7 +35,9 @@ def request_logger_middleware(
             raise
 
         duration_ms = (time.monotonic() - start) * 1000
-        await logger.info(
+        quiet = request.path in _QUIET_PATHS and response.status < 400
+        log_method = logger.debug if quiet else logger.info
+        await log_method(
             "request_completed",
             method=request.method,
             path=request.path,

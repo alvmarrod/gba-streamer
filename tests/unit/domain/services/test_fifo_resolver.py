@@ -1,8 +1,6 @@
 from datetime import datetime, timezone
 from uuid import uuid4
 
-import pytest
-
 from consumer.domain.composed.input_queue import InputQueue
 from consumer.domain.enums import Button
 from consumer.domain.services.fifo_resolver import FIFOResolver
@@ -41,7 +39,7 @@ class TestFIFOResolver:
         assert FIFOResolver.resolve(queue) is second
         assert FIFOResolver.resolve(queue) is third
 
-    def test_resolve_empty_queue_raises(self) -> None:
+    def test_resolve_empty_queue_returns_none(self) -> None:
         queue = InputQueue()
-        with pytest.raises(IndexError):
-            FIFOResolver.resolve(queue)
+        result = FIFOResolver.resolve(queue)
+        assert result is None
