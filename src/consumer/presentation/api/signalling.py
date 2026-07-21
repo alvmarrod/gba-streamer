@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import logging
+
 from aiohttp import web  # type: ignore[import-untyped]
 from aiortc import (
     RTCConfiguration,
@@ -10,6 +12,8 @@ from aiortc import (
 from consumer.infrastructure.streaming.aiortc_video_publisher import (
     AiortcVideoPublisher,
 )
+
+_log = logging.getLogger(__name__)
 
 
 async def offer(request: web.Request) -> web.Response:
@@ -35,6 +39,16 @@ async def offer(request: web.Request) -> web.Response:
     if turn_servers:
         ice_config = _RTCConfiguration(iceServers=turn_servers)
     pc = RTCPeerConnection(configuration=ice_config)
+    _log.info("ice_servers_count=%d", len(ice_config.iceServers or []))
+
+    @pc.on("iceconnectionstatechange")
+    async def _on_ice_change() -> None:
+        _log.info("ice_state=%s", pc.iceConnectionState)
+
+    @pc.on("icegatheringstatechange")
+    async def _on_gathering_change() -> None:
+        _log.info("ice_gathering=%s", pc.iceGatheringState)
+
     publisher.add_peer(pc)
 
     try:
