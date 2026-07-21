@@ -90,11 +90,7 @@ async def _handle_start(
                 [{"text": "Play", "web_app": {"url": self._webapp_url}}]
             ]
         else:
-            payload["reply_markup"] = {
-                "inline_keyboard": [
-                    [{"text": "Play", "web_app": {"url": self._webapp_url}}]
-                ]
-            }
+            payload["reply_markup"] = [[{"text": "Play", "url": self._webapp_url}]]
     await self._port.respond(
         bot_id=event.bot_id,
         chat_id=event.chat_id,
