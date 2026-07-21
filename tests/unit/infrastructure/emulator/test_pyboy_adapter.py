@@ -75,7 +75,7 @@ class TestPyBoyAdapterExecuteInput:
 
 
 class TestPyBoyAdapterTick:
-    async def test_calls_button_then_tick_per_pending(self) -> None:
+    async def test_applies_all_buttons_then_one_tick(self) -> None:
         mock_pyboy = _mock_pyboy()
         adapter = _make_adapter(mock_pyboy)
         adapter._pending_inputs = ["a", "b"]
@@ -87,7 +87,7 @@ class TestPyBoyAdapterTick:
         tick_calls = [c for c in calls if "tick" in c]
 
         assert len(button_calls) == 2
-        assert len(tick_calls) == 3
+        assert len(tick_calls) == 1
 
     async def test_clears_pending_after_tick(self) -> None:
         adapter = _make_adapter(_mock_pyboy())

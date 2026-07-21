@@ -57,7 +57,6 @@ class PyBoyAdapter(EmulatorControlPort, SnapshotPort, FramebufferProviderPort):
     def _tick_sync(self) -> None:
         for button_str in self._pending_inputs:
             self._pyboy.button(button_str)
-            self._pyboy.tick()
         self._pending_inputs.clear()
         self._pyboy.tick()
 

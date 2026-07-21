@@ -24,10 +24,14 @@ class AiortcVideoPublisher(VideoPublisherPort):
         self._source_track = FrameSourceTrack()
         self._relay = MediaRelay()
         self._peer_connections: set[RTCPeerConnection] = set()
+        self._pts = 0
 
     async def publish(self) -> None:
         raw = await self._framebuffer_provider.get_framebuffer()
         frame = self._convert(raw)
+        frame.pts = self._pts
+        frame.time_base = Fraction(1, 60)
+        self._pts += 1
         self._source_track.push(frame)
         _log.debug("frame_published pts=%s", frame.pts)
 
@@ -50,7 +54,4 @@ class AiortcVideoPublisher(VideoPublisherPort):
     def _convert(raw: bytes) -> av.VideoFrame:
         rgba = np.frombuffer(raw, dtype=np.uint8).reshape(144, 160, 4)
         frame = av.VideoFrame.from_ndarray(rgba, format="rgba")
-        frame = frame.reformat(format="yuv420p")
-        frame.pts = 0
-        frame.time_base = Fraction(1, 90000)
-        return frame
+        return frame.reformat(format="yuv420p")
