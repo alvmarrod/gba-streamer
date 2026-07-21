@@ -49,6 +49,14 @@ async def offer(request: web.Request) -> web.Response:
     async def _on_gathering_change() -> None:
         _log.info("ice_gathering=%s", pc.iceGatheringState)
 
+    @pc.on("datachannel")
+    def _on_datachannel(channel: object) -> None:  # type: ignore[no-untyped-def]
+        _log.info("datachannel_created label=%s", channel.label)  # type: ignore[attr-defined]
+
+        @channel.on("message")  # type: ignore[attr-defined]
+        def _on_message(message: str) -> None:
+            channel.send(message)  # type: ignore[attr-defined]
+
     publisher.add_peer(pc)
 
     try:

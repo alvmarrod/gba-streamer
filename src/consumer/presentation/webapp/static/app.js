@@ -9,6 +9,9 @@
     let prevFrames = 0;
     let prevTime = Date.now();
     const actionHistory = [];
+    let dataChannel = null;
+    let pingInterval = null;
+    let smoothedLatency = 0;
 
     const $ = (sel) => document.querySelector(sel);
     const video = $("#video");
@@ -61,6 +64,7 @@
         peerConnection.onconnectionstatechange = () => {
             const state = peerConnection.connectionState;
             if (state === "failed" || state === "disconnected" || state === "closed") {
+                stopPing();
                 setStatus("Disconnected", false);
                 overlay.classList.remove("hidden");
                 peerConnection = null;
@@ -69,6 +73,8 @@
         };
 
         const transceiver = peerConnection.addTransceiver("video", { direction: "recvonly" });
+
+        startPing();
 
         const offer = await peerConnection.createOffer();
         await peerConnection.setLocalDescription(offer);
@@ -180,6 +186,37 @@
         } catch (err) {
             console.error("Connect player failed:", err);
         }
+    }
+
+    function startPing() {
+        dataChannel = peerConnection.createDataChannel("ping");
+
+        dataChannel.onopen = () => {
+            pingInterval = setInterval(() => {
+                if (dataChannel && dataChannel.readyState === "open") {
+                    dataChannel.send(String(Date.now()));
+                }
+            }, 2000);
+        };
+
+        dataChannel.onmessage = (event) => {
+            const sent = parseInt(event.data, 10);
+            if (isNaN(sent)) return;
+            const rtt = Date.now() - sent;
+            smoothedLatency = smoothedLatency
+                ? Math.round(0.8 * smoothedLatency + 0.2 * rtt)
+                : rtt;
+            const el = $("#latency-display");
+            if (el) el.textContent = smoothedLatency + " ms";
+        };
+    }
+
+    function stopPing() {
+        if (pingInterval) {
+            clearInterval(pingInterval);
+            pingInterval = null;
+        }
+        dataChannel = null;
     }
 
     function setupSessionActions() {
