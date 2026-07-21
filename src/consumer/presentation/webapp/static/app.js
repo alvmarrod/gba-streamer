@@ -6,6 +6,9 @@
 
     let peerConnection = null;
     let sessionRunning = false;
+    let prevFrames = 0;
+    let prevTime = Date.now();
+    const actionHistory = [];
 
     const $ = (sel) => document.querySelector(sel);
     const video = $("#video");
@@ -88,6 +91,9 @@
     }
 
     async function sendInput(button) {
+        actionHistory.push(button);
+        if (actionHistory.length > 5) actionHistory.shift();
+        updateActionDisplay();
         try {
             await api("POST", "/api/input", {
                 player_id: PLAYER_ID,
@@ -96,6 +102,14 @@
         } catch (err) {
             console.error("Input failed:", err);
         }
+    }
+
+    function updateActionDisplay() {
+        const el = $("#actions-display");
+        if (!el) return;
+        el.textContent = actionHistory.length > 0
+            ? "Last: " + actionHistory.join(", ")
+            : "";
     }
 
     function setupGamepad() {
@@ -126,7 +140,12 @@
         try {
             const { data } = await api("GET", "/api/session");
             sessionState.textContent = data.session_state;
-            playerCount.textContent = data.connected_players + " players";
+            const count = data.connected_players;
+            playerCount.textContent = count + " players";
+
+            const others = count > 1 ? " + " + (count - 1) + " others" : "";
+            const playersEl = $("#players-display");
+            if (playersEl) playersEl.textContent = "You" + others;
 
             sessionRunning = ["RUNNING", "PAUSED", "STARTING"].includes(data.session_state);
             $("#btn-start").disabled = sessionRunning;
@@ -137,7 +156,20 @@
         } catch {
             sessionState.textContent = "Offline";
         }
-    }
+
+        try {
+            const { data: status } = await api("GET", "/api/status");
+            const now = Date.now();
+            const frameDelta = status.frames_executed - prevFrames;
+            const timeDelta = (now - prevTime) / 1000;
+            if (timeDelta > 0 && prevFrames > 0) {
+                const fps = Math.round(frameDelta / timeDelta);
+                const fpsEl = $("#fps-display");
+                if (fpsEl) fpsEl.textContent = fps + " FPS";
+            }
+            prevFrames = status.frames_executed;
+            prevTime = now;
+        } catch { }
 
     async function connectPlayer() {
         try {
