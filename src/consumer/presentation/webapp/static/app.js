@@ -160,6 +160,7 @@
             sessionRunning = ["RUNNING", "PAUSED", "STARTING"].includes(data.session_state);
             $("#btn-start").disabled = sessionRunning;
             $("#btn-stop").disabled = !sessionRunning;
+            $("#btn-save").disabled = !sessionRunning;
             $("#btn-pause").disabled = data.session_state !== "RUNNING";
             $("#btn-resume").classList.toggle("hidden", data.session_state !== "PAUSED");
             $("#btn-pause").classList.toggle("hidden", data.session_state === "PAUSED");
@@ -268,6 +269,11 @@
 
         $("#btn-resume").addEventListener("click", async () => {
             await api("POST", "/api/session/resume");
+            updateSessionInfo();
+        });
+
+        $("#btn-save").addEventListener("click", async () => {
+            await api("POST", "/api/save");
             updateSessionInfo();
         });
     }
