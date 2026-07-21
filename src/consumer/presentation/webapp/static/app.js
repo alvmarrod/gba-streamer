@@ -176,6 +176,7 @@
             prevFrames = status.frames_executed;
             prevTime = now;
         } catch { }
+    }
 
     async function connectPlayer() {
         try {
