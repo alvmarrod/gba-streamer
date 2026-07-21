@@ -56,7 +56,7 @@ class HandleTelegramCommandUseCase:
             )
             return
 
-        if command != "gb-status" and not self._auth.is_admin(event.from_user_id):
+        if command != "gb_status" and not self._auth.is_admin(event.from_user_id):
             await self._port.respond(
                 bot_id=event.bot_id,
                 chat_id=event.chat_id,
@@ -207,11 +207,11 @@ async def _handle_status(
 
 
 _COMMAND_MAP: dict[str, Callable[..., Awaitable[None]]] = {
-    "gb-start": _handle_start,
-    "gb-stop": _handle_stop,
-    "gb-pause": _handle_pause,
-    "gb-resume": _handle_resume,
-    "gb-fifo": _handle_fifo,
-    "gb-voting": _handle_voting,
-    "gb-status": _handle_status,
+    "gb_start": _handle_start,
+    "gb_stop": _handle_stop,
+    "gb_pause": _handle_pause,
+    "gb_resume": _handle_resume,
+    "gb_fifo": _handle_fifo,
+    "gb_voting": _handle_voting,
+    "gb_status": _handle_status,
 }

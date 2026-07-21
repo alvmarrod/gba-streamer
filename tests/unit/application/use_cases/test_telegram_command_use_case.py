@@ -93,7 +93,7 @@ class TestHandleTelegramCommandUseCase:
         mock_change_mode.execute = AsyncMock()
         port = StubTelegramPort()
         uc = _make_uc(change_control_mode=mock_change_mode, port=port)
-        event = _make_event(command="gb-fifo")
+        event = _make_event(command="gb_fifo")
 
         await uc.execute(event)
 
@@ -106,7 +106,7 @@ class TestHandleTelegramCommandUseCase:
         mock_change_mode.execute = AsyncMock()
         port = StubTelegramPort()
         uc = _make_uc(change_control_mode=mock_change_mode, port=port)
-        event = _make_event(command="gb-voting")
+        event = _make_event(command="gb_voting")
 
         await uc.execute(event)
 
@@ -119,7 +119,7 @@ class TestHandleTelegramCommandUseCase:
         mock_start.execute = AsyncMock()
         port = StubTelegramPort()
         uc = _make_uc(start_session=mock_start, port=port)
-        event = _make_event(command="gb-start")
+        event = _make_event(command="gb_start")
 
         await uc.execute(event)
 
@@ -132,7 +132,7 @@ class TestHandleTelegramCommandUseCase:
         mock_stop.execute = AsyncMock()
         port = StubTelegramPort()
         uc = _make_uc(stop_session=mock_stop, port=port)
-        event = _make_event(command="gb-stop")
+        event = _make_event(command="gb_stop")
 
         await uc.execute(event)
 
@@ -162,7 +162,7 @@ class TestHandleTelegramCommandUseCase:
     async def test_admin_command_rejected_for_non_admin(self) -> None:
         port = StubTelegramPort()
         uc = _make_uc(port=port, auth=StubAuth(allowed=False))
-        event = _make_event(command="gb-start")
+        event = _make_event(command="gb_start")
 
         await uc.execute(event)
 
@@ -187,7 +187,7 @@ class TestHandleTelegramCommandUseCase:
         )
         port = StubTelegramPort()
         uc = _make_uc(get_status=mock_status, port=port, auth=StubAuth(allowed=False))
-        event = _make_event(command="gb-status")
+        event = _make_event(command="gb_status")
 
         await uc.execute(event)
 

@@ -113,13 +113,13 @@ class RabbitMQTelegramAdapter(TelegramMessagePort):
             "bot_id": bot_id,
             "subscriber_id": "gba-streamer",
             "commands": [
-                {"command": "gb-start", "description": "Start game session"},
-                {"command": "gb-stop", "description": "Stop game session"},
-                {"command": "gb-pause", "description": "Pause game"},
-                {"command": "gb-resume", "description": "Resume game"},
-                {"command": "gb-fifo", "description": "Change to FIFO mode"},
-                {"command": "gb-voting", "description": "Change to Voting mode"},
-                {"command": "gb-status", "description": "Show session status"},
+                {"command": "gb_start", "description": "Start game session"},
+                {"command": "gb_stop", "description": "Stop game session"},
+                {"command": "gb_pause", "description": "Pause game"},
+                {"command": "gb_resume", "description": "Resume game"},
+                {"command": "gb_fifo", "description": "Change to FIFO mode"},
+                {"command": "gb_voting", "description": "Change to Voting mode"},
+                {"command": "gb_status", "description": "Show session status"},
             ],
         }
         await self._responses_exchange.publish(
