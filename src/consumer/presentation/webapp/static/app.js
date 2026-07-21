@@ -113,10 +113,15 @@
 
     async function sendInput(button) {
         try {
-            await api("POST", "/api/input", {
+            const { status, data } = await api("POST", "/api/input", {
                 player_id: PLAYER_ID,
                 button: button,
             });
+            if (status >= 400) {
+                const msg = data && data.error ? data.error : "Input rejected";
+                const el = $("#actions-display");
+                if (el) el.textContent = msg;
+            }
         } catch (err) {
             console.error("Input failed:", err);
         }
@@ -192,6 +197,9 @@
                     }
                     actionsEl.innerHTML = parts.join("<br>");
                 }
+            } else {
+                const el = $("#actions-display");
+                if (el && !el.textContent) el.textContent = "No actions yet";
             }
         } catch { }
     }
