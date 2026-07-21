@@ -61,3 +61,34 @@ class TestAiortcVideoPublisherIntegration:
         assert frame is not None
         assert frame.format is not None
         assert frame.format.name == "yuv420p"
+
+    async def test_publish_logs_frame_info(self, caplog: object) -> None:
+        import logging
+
+        logger = logging.getLogger(
+            "consumer.infrastructure.streaming.aiortc_video_publisher"
+        )
+        logger.setLevel(logging.INFO)
+        caplog.set_level(logging.INFO)  # type: ignore[attr-defined]
+
+        provider = StubFramebufferProvider()
+        publisher = AiortcVideoPublisher(provider)
+        await publisher.publish()
+        caplog_text: str = caplog.text  # type: ignore[attr-defined]
+        assert "frame_published" in caplog_text
+
+    async def test_recv_does_not_crash(self) -> None:
+        from consumer.infrastructure.streaming.frame_source_track import (
+            FrameSourceTrack,
+        )
+
+        track = FrameSourceTrack()
+        provider = StubFramebufferProvider()
+        publisher = AiortcVideoPublisher(provider)
+        await publisher.publish()
+        track.push(publisher._source_track._frame)  # type: ignore[attr-defined, arg-type]
+
+        async def _get_frame() -> None:
+            await track.recv()
+
+        await _get_frame()
