@@ -215,7 +215,7 @@ class TestHandleTelegramCommandUseCase:
         assert markup is not None
         assert markup[0][0]["web_app"]["url"] == "https://example.com"
 
-    async def test_start_group_chat_sends_text_url(self) -> None:
+    async def test_start_group_chat_sends_inline_keyboard(self) -> None:
         mock_start = AsyncMock()
         mock_start.execute = AsyncMock()
         port = StubTelegramPort()
@@ -228,5 +228,9 @@ class TestHandleTelegramCommandUseCase:
 
         assert len(port.responses) == 1
         payload = port.responses[0]["payload"]
-        assert "Play: https://example.com" in payload["text"]
-        assert "reply_markup" not in payload
+        assert "started" in payload["text"]
+        markup = payload.get("reply_markup")
+        assert markup is not None
+        assert (
+            markup["inline_keyboard"][0][0]["web_app"]["url"] == "https://example.com"
+        )
