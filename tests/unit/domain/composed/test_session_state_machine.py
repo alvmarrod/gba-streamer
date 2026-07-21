@@ -34,10 +34,10 @@ class TestSessionStateMachine:
         sm.transition_to(SessionState.STOPPED)
         assert sm.current_state == SessionState.STOPPED
 
-    def test_stopped_to_starting(self) -> None:
+    def test_stopped_to_running(self) -> None:
         sm = SessionStateMachine(initial_state=SessionState.STOPPED)
-        sm.transition_to(SessionState.STARTING)
-        assert sm.current_state == SessionState.STARTING
+        sm.transition_to(SessionState.RUNNING)
+        assert sm.current_state == SessionState.RUNNING
 
     def test_full_lifecycle(self) -> None:
         sm = SessionStateMachine()
@@ -45,7 +45,6 @@ class TestSessionStateMachine:
         sm.transition_to(SessionState.PAUSED)
         sm.transition_to(SessionState.RUNNING)
         sm.transition_to(SessionState.STOPPED)
-        sm.transition_to(SessionState.STARTING)
         sm.transition_to(SessionState.RUNNING)
         assert sm.current_state == SessionState.RUNNING
 

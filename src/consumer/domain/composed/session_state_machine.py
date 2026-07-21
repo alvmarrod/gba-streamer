@@ -8,7 +8,7 @@ _VALID_TRANSITIONS: dict[SessionState, set[SessionState]] = {
     SessionState.STARTING: {SessionState.RUNNING},
     SessionState.RUNNING: {SessionState.PAUSED, SessionState.STOPPED},
     SessionState.PAUSED: {SessionState.RUNNING},
-    SessionState.STOPPED: {SessionState.STARTING},
+    SessionState.STOPPED: {SessionState.RUNNING},
 }
 
 
