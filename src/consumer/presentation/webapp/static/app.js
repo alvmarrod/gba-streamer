@@ -183,6 +183,7 @@
         updateSessionInfo();
         setInterval(updateSessionInfo, 5000);
         connectWebRTC();
+        connectPlayer();
     }
 
     if (document.readyState === "loading") {

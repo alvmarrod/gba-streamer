@@ -68,8 +68,8 @@ class TestAiortcVideoPublisherIntegration:
         logger = logging.getLogger(
             "consumer.infrastructure.streaming.aiortc_video_publisher"
         )
-        logger.setLevel(logging.INFO)
-        caplog.set_level(logging.INFO)  # type: ignore[attr-defined]
+        logger.setLevel(logging.DEBUG)
+        caplog.set_level(logging.DEBUG)  # type: ignore[attr-defined]
 
         provider = StubFramebufferProvider()
         publisher = AiortcVideoPublisher(provider)

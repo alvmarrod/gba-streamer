@@ -28,7 +28,7 @@ class AiortcVideoPublisher(VideoPublisherPort):
         raw = await self._framebuffer_provider.get_framebuffer()
         frame = self._convert(raw)
         self._source_track.push(frame)
-        _log.info("frame_published pts=%s", frame.pts)
+        _log.debug("frame_published pts=%s", frame.pts)
 
     def add_peer(self, pc: RTCPeerConnection) -> None:
         self._peer_connections.add(pc)

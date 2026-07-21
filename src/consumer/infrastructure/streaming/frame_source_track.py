@@ -18,7 +18,7 @@ class FrameSourceTrack(VideoStreamTrack):
         self._frame_event = asyncio.Event()
 
     async def recv(self) -> av.VideoFrame:  # type: ignore[override]
-        _log.info("recv_called")
+        _log.debug("recv_called")
         if self.readyState != "live":
             raise MediaStreamError
         while not self._frame_event.is_set():
@@ -26,7 +26,7 @@ class FrameSourceTrack(VideoStreamTrack):
             await self._frame_event.wait()
         self._frame_event.clear()
         assert self._frame is not None
-        _log.info("recv_returning pts=%s", self._frame.pts)
+        _log.debug("recv_returning pts=%s", self._frame.pts)
         return self._frame
 
     def push(self, frame: av.VideoFrame) -> None:
