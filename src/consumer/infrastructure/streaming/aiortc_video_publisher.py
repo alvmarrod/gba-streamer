@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
+from fractions import Fraction
 
 import av  # type: ignore[import-untyped]
 import numpy as np  # type: ignore[import-untyped]
@@ -49,4 +50,7 @@ class AiortcVideoPublisher(VideoPublisherPort):
     def _convert(raw: bytes) -> av.VideoFrame:
         rgba = np.frombuffer(raw, dtype=np.uint8).reshape(144, 160, 4)
         frame = av.VideoFrame.from_ndarray(rgba, format="rgba")
-        return frame.reformat(format="yuv420p")
+        frame = frame.reformat(format="yuv420p")
+        frame.pts = 0
+        frame.time_base = Fraction(1, 90000)
+        return frame
