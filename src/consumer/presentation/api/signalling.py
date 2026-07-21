@@ -27,6 +27,13 @@ async def offer(request: web.Request) -> web.Response:
     if body["type"] != "offer":
         return web.json_response({"error": "Expected offer"}, status=400)
 
+    from aiortc import RTCConfiguration as _RTCConfiguration  # type: ignore[import-untyped]
+
+    turn_servers = [
+        s for s in (ice_config.iceServers or []) if any("turn:" in u for u in s.urls)
+    ]
+    if turn_servers:
+        ice_config = _RTCConfiguration(iceServers=turn_servers)
     pc = RTCPeerConnection(configuration=ice_config)
     publisher.add_peer(pc)
 
