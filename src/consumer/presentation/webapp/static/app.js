@@ -8,7 +8,6 @@
     let sessionRunning = false;
     let prevFrames = 0;
     let prevTime = Date.now();
-    const actionHistory = [];
     let dataChannel = null;
     let pingInterval = null;
     let smoothedLatency = 0;
@@ -97,9 +96,6 @@
     }
 
     async function sendInput(button) {
-        actionHistory.push(button);
-        if (actionHistory.length > 5) actionHistory.shift();
-        updateActionDisplay();
         try {
             await api("POST", "/api/input", {
                 player_id: PLAYER_ID,
@@ -108,14 +104,6 @@
         } catch (err) {
             console.error("Input failed:", err);
         }
-    }
-
-    function updateActionDisplay() {
-        const el = $("#actions-display");
-        if (!el) return;
-        el.textContent = actionHistory.length > 0
-            ? "Last: " + actionHistory.join(", ")
-            : "";
     }
 
     function setupGamepad() {
@@ -151,7 +139,7 @@
 
             const others = count > 1 ? " + " + (count - 1) + " others" : "";
             const playersEl = $("#players-display");
-            if (playersEl) playersEl.textContent = "You" + others;
+            if (playersEl) playersEl.textContent = "Users Connected: You" + others;
 
             sessionRunning = ["RUNNING", "PAUSED", "STARTING"].includes(data.session_state);
             $("#btn-start").disabled = sessionRunning;
@@ -175,6 +163,18 @@
             }
             prevFrames = status.frames_executed;
             prevTime = now;
+            if (status.recent_actions && status.recent_actions.length > 0) {
+                const actionsEl = $("#actions-display");
+                if (actionsEl) {
+                    const parts = ["Last Actions:"];
+                    const reversed = [...status.recent_actions].reverse();
+                    for (let i = 0; i < reversed.length; i++) {
+                        const a = reversed[i];
+                        parts.push(a.button + " (" + a.display_name + ")");
+                    }
+                    actionsEl.textContent = parts.join("\n");
+                }
+            }
         } catch { }
     }
 

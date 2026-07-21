@@ -51,3 +51,4 @@ class StatusResponse:
     total_commands: int
     frames_executed: int
     votes_processed: int
+    recent_actions: list[dict[str, str]]

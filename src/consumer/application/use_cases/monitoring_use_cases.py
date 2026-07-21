@@ -85,6 +85,17 @@ class GetStatusUseCase:
     ) -> StatusResponse:
         session = await self._session_provider.get_session()
         metrics = session.metrics
+        actions: list[dict[str, str]] = []
+        for gi in session.input_history.entries:
+            player = session.players.get(gi.player_id)
+            name = player.display_name if player else "Unknown"
+            actions.append(
+                {
+                    "button": gi.button.name.lower(),
+                    "player_id": str(gi.player_id.value),
+                    "display_name": name,
+                }
+            )
         return MonitoringMapper.to_status_response(
             session_state=session.current_state,
             control_mode=session.configuration.control_mode,
@@ -93,4 +104,5 @@ class GetStatusUseCase:
             total_commands=metrics.total_commands,
             frames_executed=metrics.frames_executed,
             votes_processed=metrics.votes_processed,
+            recent_actions=actions,
         )

@@ -186,6 +186,7 @@ class TestHandleTelegramCommandUseCase:
                 total_commands=0,
                 frames_executed=0,
                 votes_processed=0,
+                recent_actions=[],
             )
         )
         port = StubTelegramPort()

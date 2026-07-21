@@ -50,6 +50,7 @@ class MonitoringMapper:
         total_commands: int,
         frames_executed: int,
         votes_processed: int,
+        recent_actions: list[dict[str, str]] | None = None,
     ) -> StatusResponse:
         return StatusResponse(
             session_state=session_state,
@@ -59,4 +60,5 @@ class MonitoringMapper:
             total_commands=total_commands,
             frames_executed=frames_executed,
             votes_processed=votes_processed,
+            recent_actions=recent_actions or [],
         )

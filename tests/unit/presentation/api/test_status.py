@@ -31,6 +31,7 @@ class TestGetStatus:
             total_commands=150,
             frames_executed=2000,
             votes_processed=5,
+            recent_actions=[],
         )
         async with TestClient(TestServer(_make_app(get_status=mock_uc))) as client:
             resp = await client.get("/api/status")
@@ -54,6 +55,7 @@ class TestGetStatus:
             total_commands=20,
             frames_executed=500,
             votes_processed=3,
+            recent_actions=[],
         )
         async with TestClient(TestServer(_make_app(get_status=mock_uc))) as client:
             resp = await client.get("/api/status")
@@ -71,6 +73,7 @@ class TestGetStatus:
             total_commands=0,
             frames_executed=0,
             votes_processed=0,
+            recent_actions=[],
         )
         async with TestClient(TestServer(_make_app(get_status=mock_uc))) as client:
             resp = await client.get("/api/status")

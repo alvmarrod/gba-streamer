@@ -253,6 +253,11 @@ body {
     line-height: 1.4;
 }
 
+.info-row {
+    display: flex;
+    gap: 8px;
+}
+
 /* ── Widescreen (>768px) ─────────────────────────── */
 @media (min-width: 768px) {
     #app {

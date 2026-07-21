@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from datetime import datetime
 
+from consumer.domain.composed.input_history import InputHistory
 from consumer.domain.composed.input_queue import InputQueue
 from consumer.domain.composed.metrics import Metrics
 from consumer.domain.composed.save_manager import SaveManager
@@ -34,6 +35,7 @@ class GameSession:
         self._configuration = configuration
         self._players = PlayerManager()
         self._input_queue = InputQueue()
+        self._input_history = InputHistory()
         self._metrics = Metrics()
         self._save_manager = SaveManager()
         self._state_machine = SessionStateMachine()
@@ -61,6 +63,10 @@ class GameSession:
     @property
     def input_queue(self) -> InputQueue:
         return self._input_queue
+
+    @property
+    def input_history(self) -> InputHistory:
+        return self._input_history
 
     @property
     def save_manager(self) -> SaveManager:
@@ -126,6 +132,7 @@ class GameSession:
                 f"Cannot submit input in state {self._state_machine.current_state.value}"
             )
         self._metrics.increment_commands()
+        self._input_history.record(game_input)
         if self._configuration.control_mode == ControlMode.FIFO:
             self._input_queue.enqueue(game_input)
         else:

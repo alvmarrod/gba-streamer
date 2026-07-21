@@ -21,9 +21,10 @@ from consumer.application.use_cases.monitoring_use_cases import (
 from consumer.domain.composed.vote_round import VoteRound
 from consumer.domain.entities.game_session import GameSession
 from consumer.domain.entities.player import Player
-from consumer.domain.enums import ControlMode, SessionState
+from consumer.domain.enums import Button, ControlMode, SessionState
 from consumer.domain.services.metrics_calculator import MetricsSnapshot
 from consumer.domain.value_objects import (
+    GameInput,
     PlayerId,
     SessionConfiguration,
     SessionId,
@@ -185,3 +186,26 @@ class TestGetStatusUseCase:
         assert response.votes_processed == 1
         assert response.control_mode == ControlMode.VOTING
         assert response.session_state == SessionState.RUNNING
+
+    async def test_recent_actions_reflects_submitted_inputs(self) -> None:
+        from datetime import datetime, timezone
+
+        session = _make_session(control_mode=ControlMode.FIFO)
+        session.start()
+        pid = PlayerId(value=uuid4())
+        session.connect_player(Player(player_id=pid, display_name="@alice"))
+        gi = GameInput(
+            button=Button.START,
+            timestamp=datetime.now(tz=timezone.utc),
+            player_id=pid,
+        )
+        session.submit_input(gi)
+        provider = StubSessionProvider(session)
+        use_case = GetStatusUseCase(provider)
+
+        response = await use_case.execute(StatusRequest())
+
+        assert len(response.recent_actions) == 1
+        assert response.recent_actions[0]["button"] == "start"
+        assert response.recent_actions[0]["display_name"] == "@alice"
+        assert response.recent_actions[0]["player_id"] == str(pid.value)

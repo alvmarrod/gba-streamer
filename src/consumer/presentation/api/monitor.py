@@ -64,5 +64,6 @@ async def get_status(request: web.Request) -> web.Response:
             "total_commands": response.total_commands,
             "frames_executed": response.frames_executed,
             "votes_processed": response.votes_processed,
+            "recent_actions": response.recent_actions,
         }
     )
