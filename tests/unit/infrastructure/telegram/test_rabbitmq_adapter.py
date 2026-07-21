@@ -86,6 +86,7 @@ class TestNormalizeEnvelope:
         result = _normalize_envelope(raw)
         assert result.command == "start"
         assert result.command_args == ""
+        assert result.chat_type == "private"
 
     def test_command_with_args(self) -> None:
         raw = {

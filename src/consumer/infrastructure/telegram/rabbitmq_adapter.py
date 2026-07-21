@@ -148,6 +148,7 @@ def _normalize_envelope(envelope: dict[str, Any]) -> Any:
 
     routing_context: dict[str, Any] = envelope.get("routing_context", {})
     command = routing_context.get("command")
+    chat_type = routing_context.get("chat_type", "")
 
     args = ""
     if text.startswith("/") and " " in text:
@@ -165,4 +166,5 @@ def _normalize_envelope(envelope: dict[str, Any]) -> Any:
         from_user_name=name,
         from_user_username=from_user_raw.get("username"),
         from_user_id=from_user_raw.get("id", 0),
+        chat_type=chat_type,
     )

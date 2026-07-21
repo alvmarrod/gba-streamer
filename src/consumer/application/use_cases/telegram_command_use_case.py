@@ -85,9 +85,14 @@ async def _handle_start(
     )
     payload: dict[str, object] = {"text": "Session started in FIFO mode."}
     if self._webapp_url:
-        payload["reply_markup"] = [
-            [{"text": "Play", "web_app": {"url": self._webapp_url}}]
-        ]
+        if event.chat_type == "private":
+            payload["reply_markup"] = [
+                [{"text": "Play", "web_app": {"url": self._webapp_url}}]
+            ]
+        else:
+            payload["text"] = (
+                f"Session started in FIFO mode.\n\nPlay: {self._webapp_url}"
+            )
     await self._port.respond(
         bot_id=event.bot_id,
         chat_id=event.chat_id,

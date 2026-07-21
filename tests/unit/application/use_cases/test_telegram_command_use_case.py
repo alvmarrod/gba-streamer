@@ -46,6 +46,7 @@ def _make_event(
     command: str | None = None,
     text: str = "",
     from_user_id: int = 67890,
+    chat_type: str = "private",
 ) -> TelegramEvent:
     return TelegramEvent(
         event_id="evt-1",
@@ -59,6 +60,7 @@ def _make_event(
         from_user_name="@tester",
         from_user_username="tester",
         from_user_id=from_user_id,
+        chat_type=chat_type,
     )
 
 
@@ -84,6 +86,7 @@ def _make_uc(**kwargs: Any) -> HandleTelegramCommandUseCase:
         get_status=defaults["get_status"],
         port=defaults["port"],
         auth=defaults["auth"],
+        webapp_url=defaults["webapp_url"],
     )
 
 
@@ -193,3 +196,37 @@ class TestHandleTelegramCommandUseCase:
 
         assert len(port.responses) == 1
         assert "RUNNING" in port.responses[0]["payload"]["text"]
+
+    async def test_start_private_chat_sends_webapp_button(self) -> None:
+        mock_start = AsyncMock()
+        mock_start.execute = AsyncMock()
+        port = StubTelegramPort()
+        uc = _make_uc(
+            start_session=mock_start, port=port, webapp_url="https://example.com"
+        )
+        event = _make_event(command="gb_start", chat_type="private")
+
+        await uc.execute(event)
+
+        assert len(port.responses) == 1
+        payload = port.responses[0]["payload"]
+        assert "started" in payload["text"]
+        markup = payload.get("reply_markup")
+        assert markup is not None
+        assert markup[0][0]["web_app"]["url"] == "https://example.com"
+
+    async def test_start_group_chat_sends_text_url(self) -> None:
+        mock_start = AsyncMock()
+        mock_start.execute = AsyncMock()
+        port = StubTelegramPort()
+        uc = _make_uc(
+            start_session=mock_start, port=port, webapp_url="https://example.com"
+        )
+        event = _make_event(command="gb_start", chat_type="supergroup")
+
+        await uc.execute(event)
+
+        assert len(port.responses) == 1
+        payload = port.responses[0]["payload"]
+        assert "Play: https://example.com" in payload["text"]
+        assert "reply_markup" not in payload

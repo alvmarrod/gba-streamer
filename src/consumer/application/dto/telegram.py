@@ -16,3 +16,4 @@ class TelegramEvent:
     from_user_name: str
     from_user_username: str | None
     from_user_id: int
+    chat_type: str = ""
