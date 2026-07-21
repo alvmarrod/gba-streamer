@@ -87,4 +87,4 @@ class TestRegisterSignallingRoutes:
         app = web.Application()
         register_signalling_routes(app)
         routes = [r for r in app.router.routes()]
-        assert len(routes) == 1
+        assert len(routes) == 3

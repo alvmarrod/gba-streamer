@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+import json
 import logging
 import os
 import sys
@@ -221,6 +222,11 @@ def create_app(
     app = web.Application()
     app["publisher"] = publisher
     app["ice_config"] = IceConfigProvider().configuration
+    try:
+        raw_ice = os.environ.get("ICE_SERVERS", "")
+        app["ice_servers_list"] = json.loads(raw_ice) if raw_ice else []
+    except json.JSONDecodeError:
+        app["ice_servers_list"] = []
     app["scheduler"] = scheduler
     app["pyboy"] = pyboy
     app["telegram_adapter"] = telegram_adapter

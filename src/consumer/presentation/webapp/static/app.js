@@ -30,7 +30,18 @@
         setStatus("Connecting...", false);
         overlay.classList.remove("hidden");
 
-        peerConnection = new RTCPeerConnection();
+        let iceServers = [];
+        try {
+            const resp = await fetch("/api/ice-servers");
+            iceServers = await resp.json();
+        } catch (e) {
+            // fall back to empty — no TURN relay
+        }
+
+        peerConnection = new RTCPeerConnection({
+            iceServers: iceServers,
+            iceTransportPolicy: "relay",
+        });
         window._pc = peerConnection;
 
         peerConnection.ontrack = (event) => {

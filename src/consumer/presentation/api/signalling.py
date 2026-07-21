@@ -66,4 +66,10 @@ async def offer(request: web.Request) -> web.Response:
 
 
 def register_signalling_routes(app: web.Application) -> None:
+    app.router.add_get("/api/ice-servers", ice_servers)
     app.router.add_post("/api/webrtc/offer", offer)
+
+
+async def ice_servers(request: web.Request) -> web.Response:
+    servers = request.app.get("ice_servers_list", [])
+    return web.json_response(servers)
