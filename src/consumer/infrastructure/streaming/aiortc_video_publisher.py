@@ -26,6 +26,18 @@ class AiortcVideoPublisher(VideoPublisherPort):
         self._peer_connections: set[RTCPeerConnection] = set()
         self._pts = 0
 
+    @property
+    def subscriber_count(self) -> int:
+        return len(self._peer_connections)
+
+    async def health_check(self) -> dict[str, object]:
+        return {
+            "component": "streaming",
+            "healthy": self._source_track.readyState == "live",
+            "ready_state": self._source_track.readyState,
+            "subscriber_count": len(self._peer_connections),
+        }
+
     async def publish(self) -> None:
         raw = await self._framebuffer_provider.get_framebuffer()
         frame = self._convert(raw)

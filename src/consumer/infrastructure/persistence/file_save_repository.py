@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import asyncio
 import json
+import os
 from pathlib import Path
 from typing import Any
 
@@ -9,6 +10,7 @@ from consumer.application.ports.save_repository_port import SaveRepositoryPort
 
 _SAVE_FILENAME = "game_state.sav"
 _METADATA_FILENAME = "save_metadata.json"
+_HEALTH_CHECK_PAYLOAD = b"health-check-payload-0123456789" * 100
 
 
 class FileSaveRepository(SaveRepositoryPort):
@@ -26,6 +28,29 @@ class FileSaveRepository(SaveRepositoryPort):
 
     async def load_metadata(self) -> dict[str, Any]:
         return await asyncio.to_thread(self._load_metadata_sync)
+
+    async def health_check(self) -> dict[str, object]:
+        try:
+            healthy = await asyncio.to_thread(self._health_check_sync)
+        except Exception:
+            return {"component": "persistence", "healthy": False}
+        return {"component": "persistence", "healthy": healthy}
+
+    def _health_check_sync(self) -> bool:
+        target = self._save_dir / ".health_check_tmp"
+        try:
+            target.write_bytes(_HEALTH_CHECK_PAYLOAD)
+            read_back = target.read_bytes()
+            if read_back != _HEALTH_CHECK_PAYLOAD:
+                return False
+            return True
+        except Exception:
+            return False
+        finally:
+            try:
+                os.unlink(target)
+            except OSError:
+                pass
 
     def _save_sync(self, data: bytes) -> None:
         self._save_dir.mkdir(parents=True, exist_ok=True)

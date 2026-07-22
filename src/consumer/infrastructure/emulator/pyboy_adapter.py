@@ -54,6 +54,28 @@ class PyBoyAdapter(EmulatorControlPort, SnapshotPort, FramebufferProviderPort):
             self._executor, self._restore_snapshot_sync, data
         )
 
+    async def health_check(self) -> dict[str, object]:
+        try:
+            result = await asyncio.wait_for(
+                asyncio.get_event_loop().run_in_executor(
+                    self._executor, self._health_check_sync
+                ),
+                timeout=2.0,
+            )
+        except (asyncio.TimeoutError, Exception):
+            return {"component": "emulator", "healthy": False}
+        return {
+            "component": "emulator",
+            "healthy": result,
+        }
+
+    def _health_check_sync(self) -> bool:
+        try:
+            data = bytes(self._pyboy.screen.raw_buffer)
+            return len(data) > 0
+        except Exception:
+            return False
+
     def _tick_sync(self) -> None:
         for button_str in self._pending_inputs:
             self._pyboy.button(button_str)

@@ -131,6 +131,16 @@ class RabbitMQTelegramAdapter(TelegramMessagePort):
         if self._connection:
             await self._connection.close()
 
+    async def health_check(self) -> dict[str, object]:
+        connection_ok = self._connection is not None and not self._connection.is_closed
+        channel_ok = self._channel is not None and not self._channel.is_closed
+        return {
+            "component": "rabbitmq",
+            "healthy": connection_ok and channel_ok,
+            "connection_open": connection_ok,
+            "channel_open": channel_ok,
+        }
+
 
 def _normalize_envelope(envelope: dict[str, Any]) -> Any:
     from consumer.application.dto.telegram import TelegramEvent

@@ -155,7 +155,7 @@ def create_app(
     scheduler = Scheduler(logger)
 
     health_indicator = CompositeHealthIndicator(
-        scheduler, pyboy, save_repository, publisher
+        [scheduler, pyboy, save_repository, publisher, telegram_adapter]
     )
 
     resolve_input_uc = ResolveInputUseCase(session_provider, pyboy)

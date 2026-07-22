@@ -23,6 +23,10 @@ class Scheduler:
         self._running = False
 
     @property
+    def running(self) -> bool:
+        return self._running
+
+    @property
     def task_count(self) -> int:
         return len(self._tasks)
 
@@ -49,6 +53,15 @@ class Scheduler:
             )
         self._asyncio_tasks.clear()
         return StopResult(timed_out=bool(pending), pending_count=len(pending))
+
+    async def health_check(self) -> dict[str, object]:
+        return {
+            "component": "scheduler",
+            "healthy": self._running and len(self._tasks) > 0,
+            "running": self._running,
+            "task_count": len(self._tasks),
+            "tasks": [t.name for t in self._tasks],
+        }
 
     async def _run_loop(self, task: ScheduledTask) -> None:
         now = time.monotonic()
