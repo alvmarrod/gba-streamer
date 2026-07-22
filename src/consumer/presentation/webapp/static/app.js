@@ -260,7 +260,7 @@
             await api("POST", "/api/session/start", {
                 control_mode: "fifo",
                 voting_interval: 30,
-                autosave_interval: 300,
+                autosave_interval: 15,
             });
             await connectPlayer();
             updateSessionInfo();
