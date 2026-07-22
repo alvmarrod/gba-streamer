@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import asyncio
+import math
+import time
 
 from consumer.application.ports.logger_port import LoggerPort
 from consumer.application.scheduler.scheduled_task import ScheduledTask
@@ -33,9 +35,23 @@ class Scheduler:
         self._asyncio_tasks.clear()
 
     async def _run_loop(self, task: ScheduledTask) -> None:
+        interval_secs = task.interval.total_seconds()
+        if task.wall_clock_align:
+            now = time.monotonic()
+            deadline = math.ceil(now / interval_secs) * interval_secs
+        else:
+            deadline = None
+
         while self._running:
             try:
                 await task.execute()
             except Exception:
                 await self._logger.error(f"Task {task.name} failed", exc_info=True)
-            await asyncio.sleep(task.interval.total_seconds())
+
+            if deadline is not None:
+                deadline += interval_secs
+                now = time.monotonic()
+                if deadline > now:
+                    await asyncio.sleep(deadline - now)
+            else:
+                await asyncio.sleep(interval_secs)

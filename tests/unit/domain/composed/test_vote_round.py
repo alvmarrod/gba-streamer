@@ -71,11 +71,3 @@ class TestVoteRound:
         votes = vr.votes
         votes.clear()
         assert len(vr.votes) == 1
-
-    def test_initially_not_applied(self) -> None:
-        assert VoteRound().applied is False
-
-    def test_mark_applied(self) -> None:
-        vr = VoteRound()
-        vr.mark_applied()
-        assert vr.applied is True

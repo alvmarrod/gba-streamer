@@ -8,15 +8,10 @@ class VoteRound:
     def __init__(self) -> None:
         self._votes: dict[PlayerId, GameInput] = {}
         self._is_open: bool = True
-        self._applied: bool = False
 
     @property
     def is_open(self) -> bool:
         return self._is_open
-
-    @property
-    def applied(self) -> bool:
-        return self._applied
 
     @property
     def votes(self) -> dict[PlayerId, GameInput]:
@@ -29,6 +24,3 @@ class VoteRound:
 
     def close(self) -> None:
         self._is_open = False
-
-    def mark_applied(self) -> None:
-        self._applied = True

@@ -91,50 +91,7 @@ class TestResolveInputUseCase:
 
         assert len(emulator.executed) == 0
 
-    async def test_resolve_voting_resolves_and_executes(self) -> None:
-        session = make_session(control_mode=ControlMode.VOTING)
-        session.start()
-        pid = PlayerId(value=uuid4())
-        gi = make_game_input(Button.RIGHT, pid)
-        session.submit_input(gi)
-        provider = StubSessionProvider(session)
-        emulator = StubEmulatorControl()
-        use_case = ResolveInputUseCase(provider, emulator)
-
-        await use_case.execute(ResolveInputRequest())
-
-        assert len(emulator.executed) == 1
-        assert emulator.executed[0].button == Button.RIGHT
-
-    async def test_resolve_voting_no_vote_round_returns_empty(self) -> None:
-        session = make_session(control_mode=ControlMode.VOTING)
-        session.start()
-        provider = StubSessionProvider(session)
-        emulator = StubEmulatorControl()
-        use_case = ResolveInputUseCase(provider, emulator)
-
-        await use_case.execute(ResolveInputRequest())
-
-        assert len(emulator.executed) == 0
-
-    async def test_resolve_voting_tie_first_vote_wins(self) -> None:
-        session = make_session(control_mode=ControlMode.VOTING)
-        session.start()
-        pid1 = PlayerId(value=uuid4())
-        pid2 = PlayerId(value=uuid4())
-        gi1 = make_game_input(Button.LEFT, pid1)
-        gi2 = make_game_input(Button.RIGHT, pid2)
-        session.submit_input(gi1)
-        session.submit_input(gi2)
-        provider = StubSessionProvider(session)
-        emulator = StubEmulatorControl()
-        use_case = ResolveInputUseCase(provider, emulator)
-
-        await use_case.execute(ResolveInputRequest())
-
-        assert emulator.executed[0].button == Button.LEFT
-
-    async def test_resolve_voting_skips_already_applied(self) -> None:
+    async def test_resolve_voting_mode_returns_early(self) -> None:
         session = make_session(control_mode=ControlMode.VOTING)
         session.start()
         pid = PlayerId(value=uuid4())
@@ -145,10 +102,8 @@ class TestResolveInputUseCase:
         use_case = ResolveInputUseCase(provider, emulator)
 
         await use_case.execute(ResolveInputRequest())
-        assert len(emulator.executed) == 1
 
-        await use_case.execute(ResolveInputRequest())
-        assert len(emulator.executed) == 1
+        assert len(emulator.executed) == 0
 
 
 class TestTickEmulatorUseCase:

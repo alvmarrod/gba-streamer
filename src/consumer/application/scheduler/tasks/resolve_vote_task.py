@@ -11,6 +11,8 @@ from consumer.application.use_cases.voting_use_cases import (
 
 
 class ResolveVoteTask(ScheduledTask):
+    wall_clock_align = True
+
     def __init__(
         self,
         use_case: ResolveVoteUseCase,

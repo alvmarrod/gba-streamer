@@ -14,7 +14,6 @@ from consumer.application.ports.game_session_provider import GameSessionProvider
 from consumer.application.ports.video_publisher_port import VideoPublisherPort
 from consumer.domain.enums import ControlMode, SessionState
 from consumer.domain.services.fifo_resolver import FIFOResolver
-from consumer.domain.services.vote_resolver import VoteResolver
 
 
 class SubmitInputUseCase:
@@ -42,22 +41,11 @@ class ResolveInputUseCase:
         request: ResolveInputRequest,  # noqa: ARG002
     ) -> ResolveInputResponse:
         session = await self._session_provider.get_session()
-        mode = session.configuration.control_mode
-
-        if mode == ControlMode.FIFO:
-            game_input = FIFOResolver.resolve(session.input_queue)
-            if game_input is None:
-                return ResolveInputResponse()
-        else:
-            vote_round = session.current_vote
-            if vote_round is None:
-                return ResolveInputResponse()
-            if vote_round.applied:
-                return ResolveInputResponse()
-            result = VoteResolver.resolve(vote_round)
-            game_input = result.winning_input
-            vote_round.mark_applied()
-
+        if session.configuration.control_mode != ControlMode.FIFO:
+            return ResolveInputResponse()
+        game_input = FIFOResolver.resolve(session.input_queue)
+        if game_input is None:
+            return ResolveInputResponse()
         await self._emulator_control.execute_input(game_input)
         return ResolveInputResponse()
 

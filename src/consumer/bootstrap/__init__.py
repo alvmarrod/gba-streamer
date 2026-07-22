@@ -196,7 +196,7 @@ def create_app(
         "get_status": get_status_uc,
         "autosave": AutosaveUseCase(session_provider, pyboy, save_repository),
         "manual_save": ManualSaveUseCase(session_provider, pyboy, save_repository),
-        "resolve_vote": ResolveVoteUseCase(session_provider),
+        "resolve_vote": ResolveVoteUseCase(session_provider, pyboy),
     }
 
     scheduler.register(

@@ -11,7 +11,7 @@ from consumer.domain.enums import Button, ControlMode
 from consumer.domain.value_objects import PlayerId
 
 from tests.helpers.factories import make_game_input, make_session
-from tests.helpers.stub_providers import StubSessionProvider
+from tests.helpers.stub_providers import StubEmulatorControl, StubSessionProvider
 
 
 class TestResolveVoteUseCase:
@@ -24,12 +24,15 @@ class TestResolveVoteUseCase:
         assert session.current_vote is not None
 
         provider = StubSessionProvider(session)
-        use_case = ResolveVoteUseCase(provider)
+        emulator = StubEmulatorControl()
+        use_case = ResolveVoteUseCase(provider, emulator)
 
         response = await use_case.execute(ResolveVoteRequest())
 
         assert response.winning_button == Button.A
         assert response.vote_count == 1
+        assert len(emulator.executed) == 1
+        assert emulator.executed[0].button == Button.A
         assert session.current_vote is None
         assert session.metrics.votes_processed == 1
 
@@ -39,11 +42,13 @@ class TestResolveVoteUseCase:
         assert session.current_vote is None
 
         provider = StubSessionProvider(session)
-        use_case = ResolveVoteUseCase(provider)
+        emulator = StubEmulatorControl()
+        use_case = ResolveVoteUseCase(provider, emulator)
 
         response = await use_case.execute(ResolveVoteRequest())
 
         assert response.vote_count == 0
+        assert len(emulator.executed) == 0
 
     async def test_resolve_vote_majority_wins(self) -> None:
         session = make_session(control_mode=ControlMode.VOTING)
@@ -56,10 +61,13 @@ class TestResolveVoteUseCase:
         session.submit_input(make_game_input(Button.RIGHT, pid3))
 
         provider = StubSessionProvider(session)
-        use_case = ResolveVoteUseCase(provider)
+        emulator = StubEmulatorControl()
+        use_case = ResolveVoteUseCase(provider, emulator)
 
         response = await use_case.execute(ResolveVoteRequest())
 
         assert response.winning_button == Button.LEFT
         assert response.vote_count == 2
+        assert len(emulator.executed) == 1
+        assert emulator.executed[0].button == Button.LEFT
         assert session.metrics.votes_processed == 1
