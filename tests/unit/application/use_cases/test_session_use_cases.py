@@ -107,7 +107,7 @@ class TestStartSessionUseCase:
 class TestStopSessionUseCase:
     async def test_stop_transitions_to_stopped(self) -> None:
         session = make_session()
-        session.start()
+        await session.start()
         provider = StubSessionProvider(session)
         snapshot = StubSnapshotPort(data=b"final-save")
         repo = StubSaveRepository()
@@ -122,7 +122,7 @@ class TestStopSessionUseCase:
 class TestPauseSessionUseCase:
     async def test_pause_transitions_to_paused(self) -> None:
         session = make_session()
-        session.start()
+        await session.start()
         provider = StubSessionProvider(session)
         use_case = PauseSessionUseCase(provider)
 
@@ -134,8 +134,8 @@ class TestPauseSessionUseCase:
 class TestResumeSessionUseCase:
     async def test_resume_transitions_to_running(self) -> None:
         session = make_session()
-        session.start()
-        session.pause()
+        await session.start()
+        await session.pause()
         provider = StubSessionProvider(session)
         use_case = ResumeSessionUseCase(provider)
 
@@ -147,7 +147,7 @@ class TestResumeSessionUseCase:
 class TestRestoreSessionUseCase:
     async def test_restore_loads_and_restores(self) -> None:
         session = make_session()
-        session.create_snapshot()
+        await session.create_snapshot()
         provider = StubSessionProvider(session)
         snapshot_port = StubSnapshotPort(data=b"restored-data")
         save_repo = StubSaveRepository(data=b"save-data")

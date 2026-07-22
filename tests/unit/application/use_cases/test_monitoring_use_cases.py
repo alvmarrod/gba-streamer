@@ -81,10 +81,10 @@ class TestCollectMetricsUseCase:
 
     async def test_collect_metrics_with_players(self) -> None:
         session = _make_session()
-        session.connect_player(
+        await session.connect_player(
             Player(player_id=PlayerId(value=uuid4()), display_name="Alice")
         )
-        session.connect_player(
+        await session.connect_player(
             Player(player_id=PlayerId(value=uuid4()), display_name="Bob")
         )
         provider = StubSessionProvider(session)
@@ -125,7 +125,7 @@ class TestHealthCheckUseCase:
 
     async def test_unhealthy_fifo_with_vote_round(self) -> None:
         session = _make_session(control_mode=ControlMode.FIFO)
-        session.start()
+        await session.start()
         session._current_vote = VoteRound()
         provider = StubSessionProvider(session)
         use_case = HealthCheckUseCase(provider)
@@ -153,10 +153,10 @@ class TestGetStatusUseCase:
 
     async def test_reflects_connected_players(self) -> None:
         session = _make_session()
-        session.connect_player(
+        await session.connect_player(
             Player(player_id=PlayerId(value=uuid4()), display_name="Alice")
         )
-        session.connect_player(
+        await session.connect_player(
             Player(player_id=PlayerId(value=uuid4()), display_name="Bob")
         )
         provider = StubSessionProvider(session)
@@ -169,7 +169,7 @@ class TestGetStatusUseCase:
 
     async def test_reflects_accumulated_metrics(self) -> None:
         session = _make_session(control_mode=ControlMode.VOTING)
-        session.start()
+        await session.start()
         provider = StubSessionProvider(session)
         session.metrics.increment_commands()
         session.metrics.increment_commands()
@@ -191,15 +191,15 @@ class TestGetStatusUseCase:
         from datetime import datetime, timezone
 
         session = _make_session(control_mode=ControlMode.FIFO)
-        session.start()
+        await session.start()
         pid = PlayerId(value=uuid4())
-        session.connect_player(Player(player_id=pid, display_name="@alice"))
+        await session.connect_player(Player(player_id=pid, display_name="@alice"))
         gi = GameInput(
             button=Button.START,
             timestamp=datetime.now(tz=timezone.utc),
             player_id=pid,
         )
-        session.submit_input(gi)
+        await session.submit_input(gi)
         provider = StubSessionProvider(session)
         use_case = GetStatusUseCase(provider)
 

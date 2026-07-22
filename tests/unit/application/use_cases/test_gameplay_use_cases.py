@@ -31,7 +31,7 @@ from tests.helpers.stub_providers import (
 class TestSubmitInputUseCase:
     async def test_submit_fifo_input(self) -> None:
         session = make_session(control_mode=ControlMode.FIFO)
-        session.start()
+        await session.start()
         provider = StubSessionProvider(session)
         use_case = SubmitInputUseCase(provider)
 
@@ -44,7 +44,7 @@ class TestSubmitInputUseCase:
 
     async def test_submit_voting_input(self) -> None:
         session = make_session(control_mode=ControlMode.VOTING)
-        session.start()
+        await session.start()
         provider = StubSessionProvider(session)
         use_case = SubmitInputUseCase(provider)
 
@@ -67,9 +67,9 @@ class TestSubmitInputUseCase:
 class TestResolveInputUseCase:
     async def test_resolve_fifo_dequeues_and_executes(self) -> None:
         session = make_session(control_mode=ControlMode.FIFO)
-        session.start()
+        await session.start()
         gi = make_game_input(Button.LEFT)
-        session.submit_input(gi)
+        await session.submit_input(gi)
         provider = StubSessionProvider(session)
         emulator = StubEmulatorControl()
         use_case = ResolveInputUseCase(provider, emulator)
@@ -82,7 +82,7 @@ class TestResolveInputUseCase:
 
     async def test_resolve_fifo_empty_queue_returns_empty(self) -> None:
         session = make_session(control_mode=ControlMode.FIFO)
-        session.start()
+        await session.start()
         provider = StubSessionProvider(session)
         emulator = StubEmulatorControl()
         use_case = ResolveInputUseCase(provider, emulator)
@@ -93,10 +93,10 @@ class TestResolveInputUseCase:
 
     async def test_resolve_voting_mode_returns_early(self) -> None:
         session = make_session(control_mode=ControlMode.VOTING)
-        session.start()
+        await session.start()
         pid = PlayerId(value=uuid4())
         gi = make_game_input(Button.A, pid)
-        session.submit_input(gi)
+        await session.submit_input(gi)
         provider = StubSessionProvider(session)
         emulator = StubEmulatorControl()
         use_case = ResolveInputUseCase(provider, emulator)
@@ -109,7 +109,7 @@ class TestResolveInputUseCase:
 class TestTickEmulatorUseCase:
     async def test_tick_executes_and_publishes(self) -> None:
         session = make_session()
-        session.start()
+        await session.start()
         provider = StubSessionProvider(session)
         emulator = StubEmulatorControl()
         publisher = StubVideoPublisher()

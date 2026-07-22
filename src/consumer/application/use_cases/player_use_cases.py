@@ -17,7 +17,7 @@ class ConnectPlayerUseCase:
     async def execute(self, request: ConnectPlayerRequest) -> ConnectPlayerResponse:
         session = await self._session_provider.get_session()
         player = PlayerMapper.to_player(request)
-        session.connect_player(player)
+        await session.connect_player(player)
         return PlayerMapper.to_connect_response(player)
 
 
@@ -30,5 +30,5 @@ class DisconnectPlayerUseCase:
     ) -> DisconnectPlayerResponse:
         session = await self._session_provider.get_session()
         player_id = PlayerMapper.to_player_id(request)
-        session.disconnect_player(player_id)
+        await session.disconnect_player(player_id)
         return DisconnectPlayerResponse()

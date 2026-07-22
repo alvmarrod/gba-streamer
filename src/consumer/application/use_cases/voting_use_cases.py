@@ -24,10 +24,11 @@ class ResolveVoteUseCase:
         request: ResolveVoteRequest,  # noqa: ARG002
     ) -> ResolveVoteResponse:
         session = await self._session_provider.get_session()
-        vote_round = session.current_vote
+        vote_round = session.take_vote_round()
         if vote_round is None:
             return ResolveVoteResponse()
+        vote_round.close()
         result = VoteResolver.resolve(vote_round)
         await self._emulator_control.execute_input(result.winning_input)
-        session.resolve_vote()
+        await session.resolve_vote()
         return VotingMapper.to_resolve_vote_response(result)

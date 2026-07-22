@@ -35,12 +35,12 @@ class AutosaveUseCase:
             return AutosaveResponse(
                 last_save_at=datetime.now(tz=timezone.utc), save_count=0
             )
-        session.create_snapshot()
+        await session.create_snapshot()
         data = await self._snapshot_port.create_snapshot()
         await self._save_repository.save(data)
-        metadata = session.record_save(datetime.now(tz=timezone.utc))
+        metadata = await session.record_save(datetime.now(tz=timezone.utc))
         await self._save_repository.save_metadata(SaveMapper.metadata_to_dict(metadata))
-        session.restore_snapshot()
+        await session.restore_snapshot()
         return SaveMapper.to_autosave_response(metadata)
 
 
@@ -60,10 +60,10 @@ class ManualSaveUseCase:
         request: ManualSaveRequest,  # noqa: ARG002
     ) -> ManualSaveResponse:
         session = await self._session_provider.get_session()
-        session.create_snapshot()
+        await session.create_snapshot()
         data = await self._snapshot_port.create_snapshot()
         await self._save_repository.save(data)
-        metadata = session.record_save(datetime.now(tz=timezone.utc))
+        metadata = await session.record_save(datetime.now(tz=timezone.utc))
         await self._save_repository.save_metadata(SaveMapper.metadata_to_dict(metadata))
-        session.restore_snapshot()
+        await session.restore_snapshot()
         return SaveMapper.to_manual_save_response(metadata)

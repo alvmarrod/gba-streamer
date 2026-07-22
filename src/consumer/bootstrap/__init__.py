@@ -297,7 +297,12 @@ def _make_shutdown(
         await telegram_adapter.close()
         await logger.info("telegram_disconnected")
 
-        await scheduler.stop()
+        result = await scheduler.stop()
+        if result.timed_out:
+            await logger.error(
+                "scheduler_stop_timeout",
+                pending_count=result.pending_count,
+            )
         await publisher.close()
 
         await logger.info("flushing_metrics")

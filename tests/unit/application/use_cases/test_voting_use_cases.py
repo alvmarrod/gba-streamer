@@ -17,10 +17,10 @@ from tests.helpers.stub_providers import StubEmulatorControl, StubSessionProvide
 class TestResolveVoteUseCase:
     async def test_resolve_vote_clears_round(self) -> None:
         session = make_session(control_mode=ControlMode.VOTING)
-        session.start()
+        await session.start()
         pid = PlayerId(value=uuid4())
         gi = make_game_input(Button.A, pid)
-        session.submit_input(gi)
+        await session.submit_input(gi)
         assert session.current_vote is not None
 
         provider = StubSessionProvider(session)
@@ -38,7 +38,7 @@ class TestResolveVoteUseCase:
 
     async def test_resolve_vote_no_vote_round(self) -> None:
         session = make_session(control_mode=ControlMode.VOTING)
-        session.start()
+        await session.start()
         assert session.current_vote is None
 
         provider = StubSessionProvider(session)
@@ -52,13 +52,13 @@ class TestResolveVoteUseCase:
 
     async def test_resolve_vote_majority_wins(self) -> None:
         session = make_session(control_mode=ControlMode.VOTING)
-        session.start()
+        await session.start()
         pid1 = PlayerId(value=uuid4())
         pid2 = PlayerId(value=uuid4())
         pid3 = PlayerId(value=uuid4())
-        session.submit_input(make_game_input(Button.LEFT, pid1))
-        session.submit_input(make_game_input(Button.LEFT, pid2))
-        session.submit_input(make_game_input(Button.RIGHT, pid3))
+        await session.submit_input(make_game_input(Button.LEFT, pid1))
+        await session.submit_input(make_game_input(Button.LEFT, pid2))
+        await session.submit_input(make_game_input(Button.RIGHT, pid3))
 
         provider = StubSessionProvider(session)
         emulator = StubEmulatorControl()

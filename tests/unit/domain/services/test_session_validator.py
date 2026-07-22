@@ -25,35 +25,35 @@ def make_session(control_mode: ControlMode = ControlMode.FIFO) -> GameSession:
     )
 
 
-def _connect_player(session: GameSession) -> Player:
+async def _connect_player(session: GameSession) -> Player:
     player = Player(player_id=PlayerId(uuid4()), display_name="test")
-    session.connect_player(player)
+    await session.connect_player(player)
     return player
 
 
 class TestSessionValidator:
-    def test_valid_session_passes(self) -> None:
+    async def test_valid_session_passes(self) -> None:
         session = make_session()
         SessionValidator.validate(session)
 
-    def test_player_count_mismatch_raises(self) -> None:
+    async def test_player_count_mismatch_raises(self) -> None:
         session = make_session()
         session._metrics._connected_players = 5
 
         with pytest.raises(ValueError, match="Player count mismatch"):
             SessionValidator.validate(session)
 
-    def test_total_players_seen_less_than_connected_raises(self) -> None:
+    async def test_total_players_seen_less_than_connected_raises(self) -> None:
         session = make_session()
-        _connect_player(session)
-        _connect_player(session)
+        await _connect_player(session)
+        await _connect_player(session)
 
         session._metrics._total_players_seen = 1
 
         with pytest.raises(ValueError, match="total_players_seen"):
             SessionValidator.validate(session)
 
-    def test_fifo_mode_with_vote_round_raises(self) -> None:
+    async def test_fifo_mode_with_vote_round_raises(self) -> None:
         from consumer.domain.composed.vote_round import VoteRound
 
         session = make_session(control_mode=ControlMode.FIFO)

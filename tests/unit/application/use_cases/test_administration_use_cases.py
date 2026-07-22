@@ -56,9 +56,9 @@ class TestChangeControlModeUseCase:
 
     async def test_change_to_fifo_clears_vote(self) -> None:
         session = make_session(control_mode=ControlMode.VOTING)
-        session.start()
+        await session.start()
         pid = PlayerId(value=uuid4())
-        session.submit_input(
+        await session.submit_input(
             GameInput(
                 button=Button.A,
                 timestamp=datetime.now(tz=timezone.utc),

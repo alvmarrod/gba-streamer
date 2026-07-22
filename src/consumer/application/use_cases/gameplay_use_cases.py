@@ -23,7 +23,7 @@ class SubmitInputUseCase:
     async def execute(self, request: SubmitInputRequest) -> SubmitInputResponse:
         session = await self._session_provider.get_session()
         game_input = GameplayMapper.to_game_input(request)
-        session.submit_input(game_input)
+        await session.submit_input(game_input)
         return SubmitInputResponse()
 
 
@@ -70,7 +70,7 @@ class TickEmulatorUseCase:
         session = await self._session_provider.get_session()
         if session.current_state != SessionState.RUNNING:
             return TickEmulatorResponse()
-        session.record_tick()
+        await session.record_tick()
         await self._resolve_input.execute(ResolveInputRequest())
         await self._emulator_control.tick()
         await self._video_publisher.publish()

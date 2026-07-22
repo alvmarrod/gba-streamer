@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import asyncio
 from datetime import datetime
 
 from consumer.domain.composed.input_history import InputHistory
@@ -40,6 +41,7 @@ class GameSession:
         self._save_manager = SaveManager()
         self._state_machine = SessionStateMachine()
         self._current_vote: VoteRound | None = None
+        self._lock = asyncio.Lock()
 
     @property
     def session_id(self) -> SessionId:
@@ -80,85 +82,106 @@ class GameSession:
     def players(self) -> PlayerManager:
         return self._players
 
-    def start(self) -> None:
-        self._state_machine.transition_to(SessionState.RUNNING)
-        self._validate()
+    async def start(self) -> None:
+        async with self._lock:
+            self._state_machine.transition_to(SessionState.RUNNING)
+            self._validate()
 
-    def stop(self) -> None:
-        self._state_machine.transition_to(SessionState.STOPPED)
-        self._validate()
+    async def stop(self) -> None:
+        async with self._lock:
+            self._state_machine.transition_to(SessionState.STOPPED)
+            self._validate()
 
-    def pause(self) -> None:
-        self._state_machine.transition_to(SessionState.PAUSED)
-        self._validate()
+    async def pause(self) -> None:
+        async with self._lock:
+            self._state_machine.transition_to(SessionState.PAUSED)
+            self._validate()
 
-    def resume(self) -> None:
-        self._state_machine.transition_to(SessionState.RUNNING)
-        self._validate()
+    async def resume(self) -> None:
+        async with self._lock:
+            self._state_machine.transition_to(SessionState.RUNNING)
+            self._validate()
 
-    def connect_player(self, player: Player) -> None:
-        is_new = self._players.get(player.player_id) is None
-        self._players.connect(player)
-        if is_new:
-            self._metrics.increment_connected_players()
-        self._validate()
+    async def connect_player(self, player: Player) -> None:
+        async with self._lock:
+            is_new = self._players.get(player.player_id) is None
+            self._players.connect(player)
+            if is_new:
+                self._metrics.increment_connected_players()
+            self._validate()
 
-    def disconnect_player(self, player_id: PlayerId) -> None:
-        player = self._players.get(player_id)
-        if player is None:
-            raise PlayerNotConnectedException(f"Player {player_id.value} not connected")
-        self._players.disconnect(player_id)
-        self._metrics.decrement_connected_players()
-        self._validate()
+    async def disconnect_player(self, player_id: PlayerId) -> None:
+        async with self._lock:
+            player = self._players.get(player_id)
+            if player is None:
+                raise PlayerNotConnectedException(
+                    f"Player {player_id.value} not connected"
+                )
+            self._players.disconnect(player_id)
+            self._metrics.decrement_connected_players()
+            self._validate()
 
-    def configure(self, configuration: SessionConfiguration) -> None:
-        self._configuration = configuration
-        if configuration.control_mode == ControlMode.FIFO:
-            self._current_vote = None
+    async def configure(self, configuration: SessionConfiguration) -> None:
+        async with self._lock:
+            self._configuration = configuration
+            if configuration.control_mode == ControlMode.FIFO:
+                self._current_vote = None
 
-    def change_control_mode(self, new_mode: ControlMode) -> None:
-        if new_mode == self._configuration.control_mode:
-            return
-        self._configuration = SessionConfiguration(
-            control_mode=new_mode,
-            voting_interval=self._configuration.voting_interval,
-            autosave_interval=self._configuration.autosave_interval,
-        )
-        if new_mode == ControlMode.FIFO:
-            self._current_vote = None
-        self._validate()
-
-    def submit_input(self, game_input: GameInput) -> None:
-        if self._state_machine.current_state != SessionState.RUNNING:
-            raise SessionNotRunningException(
-                f"Cannot submit input in state {self._state_machine.current_state.value}"
+    async def change_control_mode(self, new_mode: ControlMode) -> None:
+        async with self._lock:
+            if new_mode == self._configuration.control_mode:
+                return
+            self._configuration = SessionConfiguration(
+                control_mode=new_mode,
+                voting_interval=self._configuration.voting_interval,
+                autosave_interval=self._configuration.autosave_interval,
             )
-        self._metrics.increment_commands()
-        self._input_history.record(game_input)
-        if self._configuration.control_mode == ControlMode.FIFO:
-            self._input_queue.enqueue(game_input)
-        else:
-            if self._current_vote is None:
-                self._current_vote = VoteRound()
-            self._current_vote.collect_vote(game_input.player_id, game_input)
+            if new_mode == ControlMode.FIFO:
+                self._current_vote = None
+            self._validate()
 
-    def create_snapshot(self) -> None:
-        self._save_manager.create_snapshot()
+    async def submit_input(self, game_input: GameInput) -> None:
+        async with self._lock:
+            if self._state_machine.current_state != SessionState.RUNNING:
+                raise SessionNotRunningException(
+                    f"Cannot submit input in state {self._state_machine.current_state.value}"
+                )
+            self._metrics.increment_commands()
+            self._input_history.record(game_input)
+            if self._configuration.control_mode == ControlMode.FIFO:
+                self._input_queue.enqueue(game_input)
+            else:
+                if self._current_vote is None:
+                    self._current_vote = VoteRound()
+                self._current_vote.collect_vote(game_input.player_id, game_input)
 
-    def restore_snapshot(self) -> None:
-        self._save_manager.restore_snapshot()
+    async def create_snapshot(self) -> None:
+        async with self._lock:
+            self._save_manager.create_snapshot()
 
-    def resolve_vote(self) -> None:
+    async def restore_snapshot(self) -> None:
+        async with self._lock:
+            self._save_manager.restore_snapshot()
+
+    def take_vote_round(self) -> VoteRound | None:
+        vote = self._current_vote
         self._current_vote = None
-        self._metrics.increment_votes_processed()
+        return vote
 
-    def record_tick(self) -> None:
-        self._metrics.increment_frames_executed()
+    async def resolve_vote(self) -> None:
+        async with self._lock:
+            self._metrics.increment_votes_processed()
 
-    def record_save(self, timestamp: datetime) -> SaveMetadata:
-        self._save_manager.update_metadata(timestamp)
-        assert self._save_manager.metadata is not None
-        return self._save_manager.metadata
+    async def record_tick(self) -> None:
+        async with self._lock:
+            self._metrics.increment_frames_executed()
 
-    def restore_metadata(self, last_save_at: datetime, save_count: int) -> None:
-        self._save_manager.restore_metadata(last_save_at, save_count)
+    async def record_save(self, timestamp: datetime) -> SaveMetadata:
+        async with self._lock:
+            self._save_manager.update_metadata(timestamp)
+            assert self._save_manager.metadata is not None
+            return self._save_manager.metadata
+
+    async def restore_metadata(self, last_save_at: datetime, save_count: int) -> None:
+        async with self._lock:
+            self._save_manager.restore_metadata(last_save_at, save_count)

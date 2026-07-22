@@ -56,7 +56,7 @@ class TestDisconnectPlayerUseCase:
     async def test_disconnect_player(self) -> None:
         session = make_session()
         pid = uuid4()
-        session.connect_player(
+        await session.connect_player(
             Player(player_id=PlayerId(value=pid), display_name="Alice")
         )
         provider = StubSessionProvider(session)

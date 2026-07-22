@@ -40,15 +40,15 @@ class StartSessionUseCase:
             meta = await self._save_repository.load_metadata()
             from datetime import datetime
 
-            session.restore_metadata(
+            await session.restore_metadata(
                 last_save_at=datetime.fromisoformat(meta["last_save_at"]),
                 save_count=meta["save_count"],
             )
         except (FileNotFoundError, KeyError, ValueError):
             pass
         configuration = SessionMapper.to_session_config(request)
-        session.configure(configuration)
-        session.start()
+        await session.configure(configuration)
+        await session.start()
         return SessionMapper.to_start_response(
             session.session_id.value, session.current_state
         )
@@ -72,7 +72,7 @@ class StopSessionUseCase:
         session = await self._session_provider.get_session()
         data = await self._snapshot_port.create_snapshot()
         await self._save_repository.save(data)
-        session.stop()
+        await session.stop()
         return SessionMapper.to_stop_response(session.current_state)
 
 
@@ -85,7 +85,7 @@ class PauseSessionUseCase:
         request: PauseSessionRequest,  # noqa: ARG002
     ) -> PauseSessionResponse:
         session = await self._session_provider.get_session()
-        session.pause()
+        await session.pause()
         return SessionMapper.to_pause_response(session.current_state)
 
 
@@ -98,7 +98,7 @@ class ResumeSessionUseCase:
         request: ResumeSessionRequest,  # noqa: ARG002
     ) -> ResumeSessionResponse:
         session = await self._session_provider.get_session()
-        session.resume()
+        await session.resume()
         return SessionMapper.to_resume_response(session.current_state)
 
 
@@ -120,7 +120,7 @@ class RestoreSessionUseCase:
         session = await self._session_provider.get_session()
         data = await self._save_repository.load()
         await self._snapshot_port.restore_snapshot(data)
-        session.restore_snapshot()
+        await session.restore_snapshot()
         return SessionMapper.to_restore_response(
             session.session_id.value, session.current_state
         )

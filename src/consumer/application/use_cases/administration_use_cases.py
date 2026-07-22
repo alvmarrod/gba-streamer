@@ -24,7 +24,7 @@ class ChangeControlModeUseCase:
     ) -> ChangeControlModeResponse:
         session = await self._session_provider.get_session()
         new_mode = AdministrationMapper.to_control_mode(request)
-        session.change_control_mode(new_mode)
+        await session.change_control_mode(new_mode)
         return ChangeControlModeResponse(
             control_mode=session.configuration.control_mode
         )
@@ -45,5 +45,5 @@ class ReloadConfigurationUseCase:
     ) -> ReloadConfigurationResponse:
         session = await self._session_provider.get_session()
         config = await self._configuration_provider.reload()
-        session.configure(config)
+        await session.configure(config)
         return AdministrationMapper.to_reload_response(config)
