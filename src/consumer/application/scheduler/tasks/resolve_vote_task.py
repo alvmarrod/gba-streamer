@@ -8,6 +8,7 @@ from consumer.application.scheduler.scheduled_task import ScheduledTask
 from consumer.application.use_cases.voting_use_cases import (
     ResolveVoteUseCase,
 )
+from consumer.domain.entities.game_session import GameSession
 
 
 class ResolveVoteTask(ScheduledTask):
@@ -16,11 +17,11 @@ class ResolveVoteTask(ScheduledTask):
     def __init__(
         self,
         use_case: ResolveVoteUseCase,
-        interval: timedelta,
+        session: GameSession,
         logger: LoggerPort,
     ) -> None:
         self._use_case = use_case
-        self._interval = interval
+        self._session = session
         self._logger = logger
 
     @property
@@ -29,7 +30,7 @@ class ResolveVoteTask(ScheduledTask):
 
     @property
     def interval(self) -> timedelta:
-        return self._interval
+        return self._session.configuration.voting_interval
 
     async def execute(self) -> None:
         await self._use_case.execute(ResolveVoteRequest())

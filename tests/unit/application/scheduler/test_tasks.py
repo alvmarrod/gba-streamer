@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from datetime import timedelta
-from unittest.mock import AsyncMock
+from unittest.mock import AsyncMock, MagicMock
 
 
 from consumer.application.dto.gameplay import TickEmulatorRequest
@@ -68,13 +68,31 @@ class TestTickTask:
         assert isinstance(arg, TickEmulatorRequest)
 
 
+def _make_session_mock(
+    autosave: timedelta = timedelta(minutes=5),
+    voting: timedelta = timedelta(seconds=30),
+) -> MagicMock:
+    from consumer.domain.value_objects import SessionConfiguration
+    from consumer.domain.enums import ControlMode
+
+    config = SessionConfiguration(
+        control_mode=ControlMode.FIFO,
+        voting_interval=voting,
+        autosave_interval=autosave,
+    )
+    session = MagicMock()
+    session.configuration = config
+    return session
+
+
 class TestAutosaveTask:
     async def test_calls_use_case(self) -> None:
         use_case = AsyncMock(spec=AutosaveUseCase)
         logger = StubLogger()
+        session = _make_session_mock(autosave=timedelta(minutes=5))
         task = AutosaveTask(
             use_case=use_case,
-            interval=timedelta(minutes=5),
+            session=session,
             logger=logger,
         )
 
@@ -92,9 +110,10 @@ class TestResolveVoteTask:
     async def test_calls_use_case(self) -> None:
         use_case = AsyncMock(spec=ResolveVoteUseCase)
         logger = StubLogger()
+        session = _make_session_mock(voting=timedelta(seconds=30))
         task = ResolveVoteTask(
             use_case=use_case,
-            interval=timedelta(seconds=30),
+            session=session,
             logger=logger,
         )
 

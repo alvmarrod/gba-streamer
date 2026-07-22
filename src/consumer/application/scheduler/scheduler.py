@@ -35,8 +35,8 @@ class Scheduler:
         self._asyncio_tasks.clear()
 
     async def _run_loop(self, task: ScheduledTask) -> None:
-        interval_secs = task.interval.total_seconds()
         if task.wall_clock_align:
+            interval_secs = task.interval.total_seconds()
             now = time.monotonic()
             deadline = math.ceil(now / interval_secs) * interval_secs
         else:
@@ -49,9 +49,10 @@ class Scheduler:
                 await self._logger.error(f"Task {task.name} failed", exc_info=True)
 
             if deadline is not None:
+                interval_secs = task.interval.total_seconds()
                 deadline += interval_secs
                 now = time.monotonic()
                 if deadline > now:
                     await asyncio.sleep(deadline - now)
             else:
-                await asyncio.sleep(interval_secs)
+                await asyncio.sleep(task.interval.total_seconds())

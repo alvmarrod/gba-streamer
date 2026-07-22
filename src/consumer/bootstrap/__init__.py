@@ -195,14 +195,14 @@ def create_app(
     scheduler.register(
         AutosaveTask(
             use_cases["autosave"],  # type: ignore[arg-type]
-            session_config.autosave_interval,
+            session,
             logger,  # type: ignore[arg-type]
         )
     )
     scheduler.register(
         ResolveVoteTask(
             use_cases["resolve_vote"],  # type: ignore[arg-type]
-            session_config.voting_interval,
+            session,
             logger,  # type: ignore[arg-type]
         )
     )

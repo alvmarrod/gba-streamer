@@ -6,17 +6,18 @@ from consumer.application.dto.save import AutosaveRequest
 from consumer.application.ports.logger_port import LoggerPort
 from consumer.application.scheduler.scheduled_task import ScheduledTask
 from consumer.application.use_cases.save_use_cases import AutosaveUseCase
+from consumer.domain.entities.game_session import GameSession
 
 
 class AutosaveTask(ScheduledTask):
     def __init__(
         self,
         use_case: AutosaveUseCase,
-        interval: timedelta,
+        session: GameSession,
         logger: LoggerPort,
     ) -> None:
         self._use_case = use_case
-        self._interval = interval
+        self._session = session
         self._logger = logger
 
     @property
@@ -25,7 +26,7 @@ class AutosaveTask(ScheduledTask):
 
     @property
     def interval(self) -> timedelta:
-        return self._interval
+        return self._session.configuration.autosave_interval
 
     async def execute(self) -> None:
         await self._use_case.execute(AutosaveRequest())
