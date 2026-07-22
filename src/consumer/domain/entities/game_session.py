@@ -159,3 +159,6 @@ class GameSession:
         self._save_manager.update_metadata(timestamp)
         assert self._save_manager.metadata is not None
         return self._save_manager.metadata
+
+    def restore_metadata(self, last_save_at: datetime, save_count: int) -> None:
+        self._save_manager.restore_metadata(last_save_at, save_count)

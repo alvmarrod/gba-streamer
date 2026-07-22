@@ -28,12 +28,19 @@ class StubSnapshotPort(SnapshotPort):
 class StubSaveRepository(SaveRepositoryPort):
     def __init__(self) -> None:
         self.saved: bytes | None = None
+        self.saved_metadata: dict[str, object] | None = None
 
     async def save(self, data: bytes) -> None:
         self.saved = data
 
     async def load(self) -> bytes:
         return b""
+
+    async def save_metadata(self, metadata: dict[str, object]) -> None:
+        self.saved_metadata = metadata
+
+    async def load_metadata(self) -> dict[str, object]:
+        return {}
 
 
 class TestAutosaveUseCase:

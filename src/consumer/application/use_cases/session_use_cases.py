@@ -36,6 +36,16 @@ class StartSessionUseCase:
             await self._snapshot_port.restore_snapshot(data)
         except FileNotFoundError:
             pass
+        try:
+            meta = await self._save_repository.load_metadata()
+            from datetime import datetime
+
+            session.restore_metadata(
+                last_save_at=datetime.fromisoformat(meta["last_save_at"]),
+                save_count=meta["save_count"],
+            )
+        except (FileNotFoundError, KeyError, ValueError):
+            pass
         configuration = SessionMapper.to_session_config(request)
         session.configure(configuration)
         session.start()

@@ -109,14 +109,6 @@ async def _load_config(config_path: Path) -> SessionConfiguration:
         return _DEFAULT_CONFIG
 
 
-async def _restore_save(repository: FileSaveRepository, pyboy: PyBoyAdapter) -> None:
-    try:
-        data = await repository.load()
-        await pyboy.restore_snapshot(data)
-    except FileNotFoundError:
-        pass
-
-
 def create_app(
     config_path: Path,
     rom_path: Path,
@@ -132,8 +124,6 @@ def create_app(
     config_provider = FileConfigurationProvider(config_path)
 
     publisher = AiortcVideoPublisher(pyboy)
-
-    asyncio.run(_restore_save(save_repository, pyboy))
 
     session = GameSession(session_id=SessionId(uuid4()), configuration=session_config)
     session_provider: GameSessionProvider = SingletonGameSessionProvider(session)
@@ -322,6 +312,10 @@ def _make_shutdown(
             await save_repository.save(data)
         except Exception:
             await logger.error("final_snapshot_failed", exc_info=True)
+        try:
+            await save_repository.save_metadata({"last_save_at": "", "save_count": 0})
+        except Exception:
+            pass
         await logger.info("pyboy_releasing")
         pyboy._executor.shutdown(wait=True)  # type: ignore[attr-defined]
         await logger.info("application_stopped")

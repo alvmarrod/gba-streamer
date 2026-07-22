@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from typing import Any
+
 from consumer.domain.value_objects import SaveMetadata
 
 from consumer.application.dto.save import AutosaveResponse, ManualSaveResponse
@@ -19,3 +21,10 @@ class SaveMapper:
             last_save_at=metadata.last_save_at,
             save_count=metadata.save_count,
         )
+
+    @staticmethod
+    def metadata_to_dict(metadata: SaveMetadata) -> dict[str, Any]:
+        return {
+            "last_save_at": metadata.last_save_at.isoformat(),
+            "save_count": metadata.save_count,
+        }

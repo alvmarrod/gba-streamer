@@ -16,5 +16,11 @@ class TestSaveRepositoryPort:
             async def load(self) -> bytes:
                 return b""
 
+            async def save_metadata(self, metadata: dict[str, object]) -> None:
+                pass
+
+            async def load_metadata(self) -> dict[str, object]:
+                return {}
+
         port = Stub()
         assert port is not None

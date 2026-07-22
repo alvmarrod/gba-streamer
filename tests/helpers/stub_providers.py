@@ -68,6 +68,8 @@ class StubSaveRepository(SaveRepositoryPort):
         self._data = data
         self._raise_not_found = raise_not_found
         self.saved: bytes | None = None
+        self.saved_metadata: dict[str, object] | None = None
+        self._metadata: dict[str, object] = {}
 
     async def save(self, data: bytes) -> None:
         self.saved = data
@@ -76,6 +78,14 @@ class StubSaveRepository(SaveRepositoryPort):
         if self._raise_not_found:
             raise FileNotFoundError()
         return self._data
+
+    async def save_metadata(self, metadata: dict[str, object]) -> None:
+        self.saved_metadata = metadata
+
+    async def load_metadata(self) -> dict[str, object]:
+        if self._raise_not_found:
+            raise FileNotFoundError()
+        return self._metadata
 
 
 class StubVideoPublisher(VideoPublisherPort):

@@ -27,3 +27,6 @@ class SaveManager:
     def update_metadata(self, timestamp: datetime) -> None:
         save_count = (self._metadata.save_count + 1) if self._metadata else 1
         self._metadata = SaveMetadata(last_save_at=timestamp, save_count=save_count)
+
+    def restore_metadata(self, last_save_at: datetime, save_count: int) -> None:
+        self._metadata = SaveMetadata(last_save_at=last_save_at, save_count=save_count)
