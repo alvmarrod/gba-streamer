@@ -12,6 +12,7 @@ from consumer.application.mappers.save_mapper import SaveMapper
 from consumer.application.ports.game_session_provider import GameSessionProvider
 from consumer.application.ports.save_repository_port import SaveRepositoryPort
 from consumer.application.ports.snapshot_port import SnapshotPort
+from consumer.domain.enums import SessionState
 
 
 class AutosaveUseCase:
@@ -30,6 +31,10 @@ class AutosaveUseCase:
         request: AutosaveRequest,  # noqa: ARG002
     ) -> AutosaveResponse:
         session = await self._session_provider.get_session()
+        if session.current_state != SessionState.RUNNING:
+            return AutosaveResponse(
+                last_save_at=datetime.now(tz=timezone.utc), save_count=0
+            )
         session.create_snapshot()
         data = await self._snapshot_port.create_snapshot()
         await self._save_repository.save(data)

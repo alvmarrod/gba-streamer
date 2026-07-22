@@ -19,11 +19,23 @@ from consumer.application.ports.snapshot_port import SnapshotPort
 
 
 class StartSessionUseCase:
-    def __init__(self, session_provider: GameSessionProvider) -> None:
+    def __init__(
+        self,
+        session_provider: GameSessionProvider,
+        snapshot_port: SnapshotPort,
+        save_repository: SaveRepositoryPort,
+    ) -> None:
         self._session_provider = session_provider
+        self._snapshot_port = snapshot_port
+        self._save_repository = save_repository
 
     async def execute(self, request: StartSessionRequest) -> StartSessionResponse:
         session = await self._session_provider.get_session()
+        try:
+            data = await self._save_repository.load()
+            await self._snapshot_port.restore_snapshot(data)
+        except FileNotFoundError:
+            pass
         configuration = SessionMapper.to_session_config(request)
         session.configure(configuration)
         session.start()
@@ -33,14 +45,23 @@ class StartSessionUseCase:
 
 
 class StopSessionUseCase:
-    def __init__(self, session_provider: GameSessionProvider) -> None:
+    def __init__(
+        self,
+        session_provider: GameSessionProvider,
+        snapshot_port: SnapshotPort,
+        save_repository: SaveRepositoryPort,
+    ) -> None:
         self._session_provider = session_provider
+        self._snapshot_port = snapshot_port
+        self._save_repository = save_repository
 
     async def execute(
         self,
         request: StopSessionRequest,  # noqa: ARG002
     ) -> StopSessionResponse:
         session = await self._session_provider.get_session()
+        data = await self._snapshot_port.create_snapshot()
+        await self._save_repository.save(data)
         session.stop()
         return SessionMapper.to_stop_response(session.current_state)
 

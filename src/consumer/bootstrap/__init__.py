@@ -138,8 +138,8 @@ def create_app(
     session = GameSession(session_id=SessionId(uuid4()), configuration=session_config)
     session_provider: GameSessionProvider = SingletonGameSessionProvider(session)
 
-    start_session_uc = StartSessionUseCase(session_provider)
-    stop_session_uc = StopSessionUseCase(session_provider)
+    start_session_uc = StartSessionUseCase(session_provider, pyboy, save_repository)
+    stop_session_uc = StopSessionUseCase(session_provider, pyboy, save_repository)
     pause_session_uc = PauseSessionUseCase(session_provider)
     resume_session_uc = ResumeSessionUseCase(session_provider)
     change_control_mode_uc = ChangeControlModeUseCase(session_provider)

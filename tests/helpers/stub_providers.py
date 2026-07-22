@@ -64,14 +64,17 @@ class StubSnapshotPort(SnapshotPort):
 
 
 class StubSaveRepository(SaveRepositoryPort):
-    def __init__(self, data: bytes = b"") -> None:
+    def __init__(self, data: bytes = b"", raise_not_found: bool = False) -> None:
         self._data = data
+        self._raise_not_found = raise_not_found
         self.saved: bytes | None = None
 
     async def save(self, data: bytes) -> None:
         self.saved = data
 
     async def load(self) -> bytes:
+        if self._raise_not_found:
+            raise FileNotFoundError()
         return self._data
 
 

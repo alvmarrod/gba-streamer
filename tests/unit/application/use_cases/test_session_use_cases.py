@@ -31,7 +31,9 @@ class TestStartSessionUseCase:
     async def test_start_transitions_to_running(self) -> None:
         session = make_session()
         provider = StubSessionProvider(session)
-        use_case = StartSessionUseCase(provider)
+        snapshot = StubSnapshotPort(data=b"")
+        repo = StubSaveRepository(data=b"")
+        use_case = StartSessionUseCase(provider, snapshot, repo)
 
         response = await use_case.execute(
             StartSessionRequest(
@@ -49,7 +51,9 @@ class TestStartSessionUseCase:
     async def test_start_applies_configuration(self) -> None:
         session = make_session(control_mode=ControlMode.FIFO)
         provider = StubSessionProvider(session)
-        use_case = StartSessionUseCase(provider)
+        snapshot = StubSnapshotPort(data=b"")
+        repo = StubSaveRepository(data=b"")
+        use_case = StartSessionUseCase(provider, snapshot, repo)
 
         await use_case.execute(
             StartSessionRequest(
@@ -63,17 +67,56 @@ class TestStartSessionUseCase:
         assert session.configuration.voting_interval == timedelta(seconds=10)
         assert session.configuration.autosave_interval == timedelta(seconds=20)
 
+    async def test_start_restores_from_save(self) -> None:
+        session = make_session()
+        provider = StubSessionProvider(session)
+        snapshot = StubSnapshotPort(data=b"save-data")
+        repo = StubSaveRepository(data=b"save-data")
+        use_case = StartSessionUseCase(provider, snapshot, repo)
+
+        response = await use_case.execute(
+            StartSessionRequest(
+                control_mode=ControlMode.FIFO,
+                voting_interval=timedelta(seconds=30),
+                autosave_interval=timedelta(seconds=15),
+            )
+        )
+
+        assert snapshot.restored == b"save-data"
+        assert response.state == SessionState.RUNNING
+
+    async def test_start_handles_missing_save(self) -> None:
+        session = make_session()
+        provider = StubSessionProvider(session)
+        snapshot = StubSnapshotPort(data=b"")
+        repo = StubSaveRepository(data=b"", raise_not_found=True)
+        use_case = StartSessionUseCase(provider, snapshot, repo)
+
+        response = await use_case.execute(
+            StartSessionRequest(
+                control_mode=ControlMode.FIFO,
+                voting_interval=timedelta(seconds=30),
+                autosave_interval=timedelta(seconds=15),
+            )
+        )
+
+        assert response.state == SessionState.RUNNING
+        assert snapshot.restored is None
+
 
 class TestStopSessionUseCase:
-    async def test_stop_transitions_to_stopping(self) -> None:
+    async def test_stop_transitions_to_stopped(self) -> None:
         session = make_session()
         session.start()
         provider = StubSessionProvider(session)
-        use_case = StopSessionUseCase(provider)
+        snapshot = StubSnapshotPort(data=b"final-save")
+        repo = StubSaveRepository()
+        use_case = StopSessionUseCase(provider, snapshot, repo)
 
         response = await use_case.execute(StopSessionRequest())
 
         assert response.state == SessionState.STOPPED
+        assert repo.saved == b"final-save"
 
 
 class TestPauseSessionUseCase:

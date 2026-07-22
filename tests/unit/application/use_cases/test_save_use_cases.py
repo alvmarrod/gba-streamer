@@ -39,6 +39,7 @@ class StubSaveRepository(SaveRepositoryPort):
 class TestAutosaveUseCase:
     async def test_autosave_persists_snapshot(self) -> None:
         session = make_session()
+        session.start()
         provider = StubSessionProvider(session)
         snapshot_port = StubSnapshotPort(data=b"emulator-state")
         save_repo = StubSaveRepository()
@@ -54,6 +55,7 @@ class TestAutosaveUseCase:
 
     async def test_autosave_increments_count(self) -> None:
         session = make_session()
+        session.start()
         provider = StubSessionProvider(session)
         snapshot_port = StubSnapshotPort()
         save_repo = StubSaveRepository()
@@ -63,6 +65,18 @@ class TestAutosaveUseCase:
         response = await use_case.execute(AutosaveRequest())
 
         assert response.save_count == 2
+
+    async def test_autosave_skips_when_not_running(self) -> None:
+        session = make_session()
+        provider = StubSessionProvider(session)
+        snapshot_port = StubSnapshotPort()
+        save_repo = StubSaveRepository()
+        use_case = AutosaveUseCase(provider, snapshot_port, save_repo)
+
+        response = await use_case.execute(AutosaveRequest())
+
+        assert save_repo.saved is None
+        assert response.save_count == 0
 
 
 class TestManualSaveUseCase:

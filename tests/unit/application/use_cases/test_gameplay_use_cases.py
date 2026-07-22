@@ -166,3 +166,17 @@ class TestTickEmulatorUseCase:
         assert emulator.tick_count == 1
         assert publisher.publish_count == 1
         assert session.metrics.frames_executed == 1
+
+    async def test_tick_skips_when_not_running(self) -> None:
+        session = make_session()
+        provider = StubSessionProvider(session)
+        emulator = StubEmulatorControl()
+        publisher = StubVideoPublisher()
+        resolve_input = ResolveInputUseCase(provider, emulator)
+        use_case = TickEmulatorUseCase(provider, emulator, publisher, resolve_input)
+
+        await use_case.execute(TickEmulatorRequest())
+
+        assert emulator.tick_count == 0
+        assert publisher.publish_count == 0
+        assert session.metrics.frames_executed == 0

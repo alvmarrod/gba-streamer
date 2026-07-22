@@ -12,7 +12,7 @@ from consumer.application.mappers.gameplay_mapper import GameplayMapper
 from consumer.application.ports.emulator_control_port import EmulatorControlPort
 from consumer.application.ports.game_session_provider import GameSessionProvider
 from consumer.application.ports.video_publisher_port import VideoPublisherPort
-from consumer.domain.enums import ControlMode
+from consumer.domain.enums import ControlMode, SessionState
 from consumer.domain.services.fifo_resolver import FIFOResolver
 from consumer.domain.services.vote_resolver import VoteResolver
 
@@ -80,6 +80,8 @@ class TickEmulatorUseCase:
         request: TickEmulatorRequest,  # noqa: ARG002
     ) -> TickEmulatorResponse:
         session = await self._session_provider.get_session()
+        if session.current_state != SessionState.RUNNING:
+            return TickEmulatorResponse()
         session.record_tick()
         await self._resolve_input.execute(ResolveInputRequest())
         await self._emulator_control.tick()
