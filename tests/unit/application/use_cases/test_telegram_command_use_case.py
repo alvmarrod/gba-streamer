@@ -143,15 +143,14 @@ class TestHandleTelegramCommandUseCase:
         assert len(port.responses) == 1
         assert "stopped" in port.responses[0]["payload"]["text"]
 
-    async def test_unknown_command(self) -> None:
+    async def test_unknown_command_is_silently_ignored(self) -> None:
         port = StubTelegramPort()
         uc = _make_uc(port=port)
         event = _make_event(command="nonexistent")
 
         await uc.execute(event)
 
-        assert len(port.responses) == 1
-        assert "Unknown command" in port.responses[0]["payload"]["text"]
+        assert len(port.responses) == 0
 
     async def test_no_command_skips(self) -> None:
         port = StubTelegramPort()

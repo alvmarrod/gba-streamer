@@ -47,13 +47,6 @@ class HandleTelegramCommandUseCase:
             return
 
         if command not in _COMMAND_MAP:
-            await self._port.respond(
-                bot_id=event.bot_id,
-                chat_id=event.chat_id,
-                response_type="text",
-                payload={"text": f"Unknown command: /{command}"},
-                correlation_id=event.event_id,
-            )
             return
 
         if command != "gb_status" and not self._auth.is_admin(event.from_user_id):
