@@ -65,15 +65,20 @@ def _make_event(
 
 
 def _make_uc(**kwargs: Any) -> HandleTelegramCommandUseCase:
+    save_repo_default = AsyncMock()
+    save_repo_default.load.side_effect = FileNotFoundError()
+
     defaults: dict[str, Any] = {
         "start_session": AsyncMock(),
         "stop_session": AsyncMock(),
         "pause_session": AsyncMock(),
         "resume_session": AsyncMock(),
+        "restore_session": AsyncMock(),
         "change_control_mode": AsyncMock(),
         "get_status": AsyncMock(),
         "port": StubTelegramPort(),
         "auth": StubAuth(),
+        "save_repository": save_repo_default,
         "webapp_url": "",
     }
     defaults.update(kwargs)
@@ -82,10 +87,12 @@ def _make_uc(**kwargs: Any) -> HandleTelegramCommandUseCase:
         stop_session=defaults["stop_session"],
         pause_session=defaults["pause_session"],
         resume_session=defaults["resume_session"],
+        restore_session=defaults["restore_session"],
         change_control_mode=defaults["change_control_mode"],
         get_status=defaults["get_status"],
         port=defaults["port"],
         auth=defaults["auth"],
+        save_repository=defaults["save_repository"],
         webapp_url=defaults["webapp_url"],
     )
 

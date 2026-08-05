@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from datetime import datetime, timezone
+
 from consumer.application.dto.session import (
     PauseSessionRequest,
     PauseSessionResponse,
@@ -12,6 +14,7 @@ from consumer.application.dto.session import (
     StopSessionRequest,
     StopSessionResponse,
 )
+from consumer.application.mappers.save_mapper import SaveMapper
 from consumer.application.mappers.session_mapper import SessionMapper
 from consumer.application.ports.game_session_provider import GameSessionProvider
 from consumer.application.ports.save_repository_port import SaveRepositoryPort
@@ -22,30 +25,11 @@ class StartSessionUseCase:
     def __init__(
         self,
         session_provider: GameSessionProvider,
-        snapshot_port: SnapshotPort,
-        save_repository: SaveRepositoryPort,
     ) -> None:
         self._session_provider = session_provider
-        self._snapshot_port = snapshot_port
-        self._save_repository = save_repository
 
     async def execute(self, request: StartSessionRequest) -> StartSessionResponse:
         session = await self._session_provider.get_session()
-        try:
-            data = await self._save_repository.load()
-            await self._snapshot_port.restore_snapshot(data)
-        except FileNotFoundError:
-            pass
-        try:
-            meta = await self._save_repository.load_metadata()
-            from datetime import datetime
-
-            await session.restore_metadata(
-                last_save_at=datetime.fromisoformat(meta["last_save_at"]),
-                save_count=meta["save_count"],
-            )
-        except (FileNotFoundError, KeyError, ValueError):
-            pass
         configuration = SessionMapper.to_session_config(request)
         await session.configure(configuration)
         await session.start()
@@ -72,6 +56,8 @@ class StopSessionUseCase:
         session = await self._session_provider.get_session()
         data = await self._snapshot_port.create_snapshot()
         await self._save_repository.save(data)
+        metadata = await session.record_save(datetime.now(tz=timezone.utc))
+        await self._save_repository.save_metadata(SaveMapper.metadata_to_dict(metadata))
         await session.stop()
         return SessionMapper.to_stop_response(session.current_state)
 
@@ -120,6 +106,14 @@ class RestoreSessionUseCase:
         session = await self._session_provider.get_session()
         data = await self._save_repository.load()
         await self._snapshot_port.restore_snapshot(data)
+        try:
+            meta = await self._save_repository.load_metadata()
+            await session.restore_metadata(
+                last_save_at=datetime.fromisoformat(meta["last_save_at"]),
+                save_count=meta["save_count"],
+            )
+        except (FileNotFoundError, KeyError, ValueError):
+            pass
         await session.restore_snapshot()
         return SessionMapper.to_restore_response(
             session.session_id.value, session.current_state

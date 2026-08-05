@@ -128,10 +128,11 @@ def create_app(
     session = GameSession(session_id=SessionId(uuid4()), configuration=session_config)
     session_provider: GameSessionProvider = SingletonGameSessionProvider(session)
 
-    start_session_uc = StartSessionUseCase(session_provider, pyboy, save_repository)
+    start_session_uc = StartSessionUseCase(session_provider)
     stop_session_uc = StopSessionUseCase(session_provider, pyboy, save_repository)
     pause_session_uc = PauseSessionUseCase(session_provider)
     resume_session_uc = ResumeSessionUseCase(session_provider)
+    restore_session_uc = RestoreSessionUseCase(session_provider, pyboy, save_repository)
     change_control_mode_uc = ChangeControlModeUseCase(session_provider)
     get_status_uc = GetStatusUseCase(session_provider)
 
@@ -145,10 +146,12 @@ def create_app(
         stop_session_uc,
         pause_session_uc,
         resume_session_uc,
+        restore_session_uc,
         change_control_mode_uc,
         get_status_uc,
         telegram_adapter,
         authorizer,
+        save_repository,
         webapp_url=webapp_url,
     )
 
@@ -165,9 +168,7 @@ def create_app(
         "stop_session": stop_session_uc,
         "pause_session": pause_session_uc,
         "resume_session": resume_session_uc,
-        "restore_session": RestoreSessionUseCase(
-            session_provider, pyboy, save_repository
-        ),
+        "restore_session": restore_session_uc,
         "connect_player": ConnectPlayerUseCase(session_provider),
         "disconnect_player": DisconnectPlayerUseCase(session_provider),
         "submit_input": SubmitInputUseCase(session_provider),
@@ -317,10 +318,6 @@ def _make_shutdown(
             await save_repository.save(data)
         except Exception:
             await logger.error("final_snapshot_failed", exc_info=True)
-        try:
-            await save_repository.save_metadata({"last_save_at": "", "save_count": 0})
-        except Exception:
-            pass
         await logger.info("pyboy_releasing")
         pyboy._executor.shutdown(wait=True)  # type: ignore[attr-defined]
         await logger.info("application_stopped")
